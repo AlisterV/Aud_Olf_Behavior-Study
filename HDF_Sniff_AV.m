@@ -42,19 +42,24 @@ end
 
 % Initialize behavorial response arrays that tally the total number of
 % responses of each type to be output into the final excel sheet later on. 
-LeftHitCounter = 0;
+GoHitCounter = 0;
 RightHitCounter = 0;
 LeftMissCounter = 0;
 RightMissCounter = 0;
 LeftNoResponseCounter = 0;
 RightNoResponseCounter = 0;
 % Behavorial response array.
-behavorialResponseArray(8, 2) = "Left hit";
-behavorialResponseArray(9, 2) = "Right hit";
-behavorialResponseArray(10, 2) = "Left miss";
-behavorialResponseArray(11, 2) = "Right miss";
-behavorialResponseArray(12, 2) = "Left no response";
-behavorialResponseArray(13, 2) = "Right no response";
+% behavorialResponseArray(8, 2) = "Left hit";
+% behavorialResponseArray(9, 2) = "Right hit";
+% behavorialResponseArray(10, 2) = "Left miss";
+% behavorialResponseArray(11, 2) = "Right miss";
+% behavorialResponseArray(12, 2) = "Left no response";
+% behavorialResponseArray(13, 2) = "Right no response";
+behavorialResponseArray(8, 2) = "Go Hit";
+behavorialResponseArray(9, 2) = "Go Miss";
+behavorialResponseArray(10, 2) = "No Go Hit";
+behavorialResponseArray(11, 2) = "No Go Miss";
+
 % Determine whether behavior of mouse was correct for the given trial.
 % 1 = left hit -- 2 = right hit -- 3 = left miss -- 4 = right miss
 % 5 = Left no response -- 6 = Right no response
@@ -68,8 +73,8 @@ for Trials = 1:NumTrials
     % Translate the animals response for the trial.
     if mouseResponse == 1
         behavorialResponseArray(6, Trials) = "Left hit";
-        LeftHitCounter = LeftHitCounter + 1;
-        behavorialResponseArray(8, 1) = LeftHitCounter;
+        GoHitCounter = GoHitCounter + 1;
+        behavorialResponseArray(8, 1) = GoHitCounter;
     elseif mouseResponse == 2
         behavorialResponseArray(6, Trials) = "Right hit";
         RightHitCounter = RightHitCounter + 1;
@@ -101,3 +106,4 @@ behavorialResponseArray(15, 2) = 'Total number of trials';
 writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)), 'FileType', 'spreadsheet');
 % writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');
 %format:  writematrix(dataset, "title of file", 'FileType', 'spreadsheet')
+

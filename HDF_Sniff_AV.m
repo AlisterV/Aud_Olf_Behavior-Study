@@ -35,17 +35,72 @@ for Trials = 1:NumTrials
         responseTime = 0;
     end
     % save the response time into a string array.
-    behavorialResponseArray(1,Trials) = "Trial number:  " + Trials;
+    behavorialResponseArray(1,Trials) = "Trial # " + Trials;
     behavorialResponseArray(2,Trials) = "Response Time (ms)";
     behavorialResponseArray(3,Trials) = responseTime;
 end
 
 % Initialize behavorial response arrays that tally the total number of
 % responses of each type to be output into the final excel sheet later on. 
+% GoHitCounter = 0;
+% RightHitCounter = 0;
+% LeftMissCounter = 0;
+% RightMissCounter = 0;
+% LeftNoResponseCounter = 0;
+% RightNoResponseCounter = 0;
+% % Behavorial response array.
+% % behavorialResponseArray(8, 2) = "Left hit";
+% % behavorialResponseArray(9, 2) = "Right hit";
+% % behavorialResponseArray(10, 2) = "Left miss";
+% % behavorialResponseArray(11, 2) = "Right miss";
+% % behavorialResponseArray(12, 2) = "Left no response";
+% % behavorialResponseArray(13, 2) = "Right no response";
+% behavorialResponseArray(8, 2) = "Go Hit";
+% behavorialResponseArray(9, 2) = "Go Miss";
+% behavorialResponseArray(10, 2) = "No Go Hit";
+% behavorialResponseArray(11, 2) = "No Go Miss";
+
+% Determine whether behavior of mouse was correct for the given trial.
+% 1 = left hit -- 2 = right hit -- 3 = left miss -- 4 = right miss
+% 5 = Left no response -- 6 = Right no response
+% for Trials = 1:NumTrials
+%     % Get the animal's response for this trial.
+%     mouseResponse = Data.response(Trials);
+%     % Label which trial this is.
+%     behavorialResponseArray(4, Trials) = "Mouse's behavior";
+%     % Save the numerical result of this mouses' behavorial for the trial.
+%     behavorialResponseArray(5, Trials) = mouseResponse;
+%     % Translate the animals response for the trial.
+%     if mouseResponse == 1
+%         behavorialResponseArray(6, Trials) = "Go Hit";
+%         GoHitCounter = GoHitCounter + 1;
+%         behavorialResponseArray(8, 1) = GoHitCounter;
+%     elseif mouseResponse == 2
+%         behavorialResponseArray(6, Trials) = "Right hit";
+%         RightHitCounter = RightHitCounter + 1;
+%         behavorialResponseArray(9, 1) = RightHitCounter;
+%     elseif mouseResponse == 3
+%         behavorialResponseArray(6, Trials) = "Left miss";
+%         LeftMissCounter = LeftMissCounter + 1;
+%         behavorialResponseArray(10, 1) = LeftMissCounter;
+%     elseif mouseResponse == 4
+%         behavorialResponseArray(6, Trials) = "Right miss";
+%         RightMissCounter = RightMissCounter + 1;
+%         behavorialResponseArray(11, 1) = RightMissCounter;
+%     elseif mouseResponse == 5
+%         behavorialResponseArray(6, Trials) = "Left no response";
+%         LeftNoResponseCounter = LeftNoResponseCounter + 1;
+%         behavorialResponseArray(12, 1) = LeftNoResponseCounter;
+%     elseif mouseResponse == 6
+%         behavorialResponseArray(6, Trials) = "Right no response";
+%         RightNoResponseCounter = RightNoResponseCounter + 1;
+%         behavorialResponseArray(13, 1) = RightNoResponseCounter;
+%     end
+% end
 GoHitCounter = 0;
-RightHitCounter = 0;
-LeftMissCounter = 0;
-RightMissCounter = 0;
+NoGoHitCounter = 0;
+GoMissCounter = 0;
+NoGoMissCounter = 0;
 LeftNoResponseCounter = 0;
 RightNoResponseCounter = 0;
 % Behavorial response array.
@@ -60,9 +115,6 @@ behavorialResponseArray(9, 2) = "Go Miss";
 behavorialResponseArray(10, 2) = "No Go Hit";
 behavorialResponseArray(11, 2) = "No Go Miss";
 
-% Determine whether behavior of mouse was correct for the given trial.
-% 1 = left hit -- 2 = right hit -- 3 = left miss -- 4 = right miss
-% 5 = Left no response -- 6 = Right no response
 for Trials = 1:NumTrials
     % Get the animal's response for this trial.
     mouseResponse = Data.response(Trials);
@@ -72,32 +124,31 @@ for Trials = 1:NumTrials
     behavorialResponseArray(5, Trials) = mouseResponse;
     % Translate the animals response for the trial.
     if mouseResponse == 1
-        behavorialResponseArray(6, Trials) = "Left hit";
+        behavorialResponseArray(6, Trials) = "Go Hit";
         GoHitCounter = GoHitCounter + 1;
         behavorialResponseArray(8, 1) = GoHitCounter;
     elseif mouseResponse == 2
-        behavorialResponseArray(6, Trials) = "Right hit";
-        RightHitCounter = RightHitCounter + 1;
-        behavorialResponseArray(9, 1) = RightHitCounter;
+        behavorialResponseArray(6, Trials) = "NoGo Hit";
+        NoGoHitCounter = NoGoHitCounter + 1;
+        behavorialResponseArray(9, 1) = NoGoHitCounter;
     elseif mouseResponse == 3
-        behavorialResponseArray(6, Trials) = "Left miss";
-        LeftMissCounter = LeftMissCounter + 1;
-        behavorialResponseArray(10, 1) = LeftMissCounter;
+        behavorialResponseArray(6, Trials) = "Go Miss";
+        GoMissCounter = GoMissCounter + 1;
+        behavorialResponseArray(10, 1) = GoMissCounter;
     elseif mouseResponse == 4
-        behavorialResponseArray(6, Trials) = "Right miss";
-        RightMissCounter = RightMissCounter + 1;
-        behavorialResponseArray(11, 1) = RightMissCounter;
-    elseif mouseResponse == 5
-        behavorialResponseArray(6, Trials) = "Left no response";
-        LeftNoResponseCounter = LeftNoResponseCounter + 1;
-        behavorialResponseArray(12, 1) = LeftNoResponseCounter;
-    elseif mouseResponse == 6
-        behavorialResponseArray(6, Trials) = "Right no response";
-        RightNoResponseCounter = RightNoResponseCounter + 1;
-        behavorialResponseArray(13, 1) = RightNoResponseCounter;
+        behavorialResponseArray(6, Trials) = "NoGo Miss";
+        NoGoMissCounter = NoGoMissCounter + 1;
+        behavorialResponseArray(11, 1) = NoGoMissCounter;
+%     elseif mouseResponse == 5
+%         behavorialResponseArray(6, Trials) = "Left no response";
+%         LeftNoResponseCounter = LeftNoResponseCounter + 1;
+%         behavorialResponseArray(12, 1) = LeftNoResponseCounter;
+%     elseif mouseResponse == 6
+%         behavorialResponseArray(6, Trials) = "Right no response";
+%         RightNoResponseCounter = RightNoResponseCounter + 1;
+%         behavorialResponseArray(13, 1) = RightNoResponseCounter;
     end
 end
-
 % Also indicate the total number of trials for this training session. 
 behavorialResponseArray(15, 1) = NumTrials;
 behavorialResponseArray(15, 2) = 'Total number of trials';
@@ -107,3 +158,10 @@ writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToString
 % writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');
 %format:  writematrix(dataset, "title of file", 'FileType', 'spreadsheet')
 
+GoHitCounter
+NoGoHitCounter
+GoMissCounter
+NoGoMissCounter
+
+Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100
+Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100

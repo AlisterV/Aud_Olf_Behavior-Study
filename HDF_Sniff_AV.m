@@ -14,9 +14,10 @@ clc;
 windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
 Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
 
-%  NameFile= [input('What is the name of the HDF5 file):  ','s') '.h5'];
+%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
 FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
 NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
+
 Data =  h5read(NameFile,'/Trials');
 % mouse = input("What is the number of this mouse? ");
 NumTrials = length(Data.trialNumber); %Determine the number of trials in this experiment in order to get the sniff data later on.
@@ -101,8 +102,8 @@ GoHitCounter = 0;
 NoGoHitCounter = 0;
 GoMissCounter = 0;
 NoGoMissCounter = 0;
-LeftNoResponseCounter = 0;
-RightNoResponseCounter = 0;
+%LeftNoResponseCounter = 0;
+%RightNoResponseCounter = 0;
 % Behavorial response array.
 % behavorialResponseArray(8, 2) = "Left hit";
 % behavorialResponseArray(9, 2) = "Right hit";
@@ -152,16 +153,28 @@ end
 % Also indicate the total number of trials for this training session. 
 behavorialResponseArray(15, 1) = NumTrials;
 behavorialResponseArray(15, 2) = 'Total number of trials';
+Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100;
+Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100;
+behavorialResponseArray(9,3)= Correctpercentage;
+behavorialResponseArray(9,4)= '% Correct';
+behavorialResponseArray(10,3)= Incorrectpercentage;
+behavorialResponseArray(10,4)= '% Incorrect';
 
 % save the response time data and the behavorial response data to an excel file.
-writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)), 'FileType', 'spreadsheet');
-% writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');
+writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)),'FileType','spreadsheet','Sheet',FileNameInput);
+
+    %writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(fullFileName)), 'FileType', 'spreadsheet');
+    
+    % writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');
 %format:  writematrix(dataset, "title of file", 'FileType', 'spreadsheet')
 
-GoHitCounter
-NoGoHitCounter
-GoMissCounter
-NoGoMissCounter
+% GoHitCounter
+% NoGoHitCounter
+% GoMissCounter
+% NoGoMissCounter
+% 
+% Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100
+% Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100
 
-Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100
-Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100
+end
+

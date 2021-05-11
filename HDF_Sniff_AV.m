@@ -116,6 +116,8 @@ behavorialResponseArray(9, 2) = "Go Miss";
 behavorialResponseArray(10, 2) = "No Go Hit";
 behavorialResponseArray(11, 2) = "No Go Miss";
 
+correctpercenttracker=zeros(1,NumTrials);
+incorrectpercenttracker=zeros(1,NumTrials);
 for Trials = 1:NumTrials
     % Get the animal's response for this trial.
     mouseResponse = Data.response(Trials);
@@ -128,18 +130,26 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "Go Hit";
         GoHitCounter = GoHitCounter + 1;
         behavorialResponseArray(8, 1) = GoHitCounter;
+        correctpercenttracker(Trials)=1;
+        incorrectpercenttracker(Trials)=0;
     elseif mouseResponse == 2
         behavorialResponseArray(6, Trials) = "NoGo Hit";
         NoGoHitCounter = NoGoHitCounter + 1;
         behavorialResponseArray(9, 1) = NoGoHitCounter;
+        correctpercenttracker(Trials)=1;
+        incorrectpercenttracker(Trials)=0;
     elseif mouseResponse == 3
         behavorialResponseArray(6, Trials) = "Go Miss";
         GoMissCounter = GoMissCounter + 1;
         behavorialResponseArray(10, 1) = GoMissCounter;
+        correctpercenttracker(Trials)=0;
+        incorrectpercenttracker(Trials)=1;
     elseif mouseResponse == 4
         behavorialResponseArray(6, Trials) = "NoGo Miss";
         NoGoMissCounter = NoGoMissCounter + 1;
         behavorialResponseArray(11, 1) = NoGoMissCounter;
+        correctpercenttracker(Trials)=0;
+        incorrectpercenttracker(Trials)=1;
 %     elseif mouseResponse == 5
 %         behavorialResponseArray(6, Trials) = "Left no response";
 %         LeftNoResponseCounter = LeftNoResponseCounter + 1;
@@ -176,5 +186,37 @@ writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToString
 % Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100
 % Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100
 
-end
-
+perc=zeros(1,NumTrials);
+perct=zeros(1,NumTrials);
+ for u = 1:NumTrials
+     tracker=correctpercenttracker(u);
+      if tracker == 1
+          holder= sum(correctpercenttracker(1:u));
+          perc(u)=holder/u;
+      elseif tracker == 0
+          invert= ~correctpercenttracker;
+          holder2=sum(invert(1:u));
+          perct(u)=holder2/u;
+      end
+ end
+ figure(1)
+ a=nonzeros(perc)'*100;
+ plot(a,'b')
+ hold on
+ b=nonzeros(perct)'*100;
+ plot(b,'r')
+ ylim([0 100])
+ grid on
+ title('Aligned Percentage Correct/Incorrect')
+ legend('Correct Perecntage','Incorrect Percentage')
+ 
+ hold off
+ 
+ figure(2)
+ plot(perc*100,'b')
+ hold on
+ plot(perct*100,'r')
+ ylim([0 100])
+ grid on
+ title('Percent Correct/Incorrect For Current Trial')
+ legend('Correct Percentage','Incorrect Percentage')

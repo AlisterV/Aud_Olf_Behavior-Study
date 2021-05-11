@@ -27,18 +27,19 @@ if ~isfolder(myFolder)
          return;
     end
 end
-percentcorrectcounter = zeros(1,100);
-percentincorrectcounter = zeros(1,100);
-percentdifferencepertrialcorrect = zeros(1,100);
-percentdifferencepertrialincorrect = zeros(1,100);
+
 % Get a list of all files in the folder with the desired file name pattern.
 filePattern = fullfile(myFolder, '*.h5'); % Change to whatever pattern you need.
 theFiles = dir(filePattern);
+percentcorrectcounter = zeros(1,numel(theFiles));
+percentincorrectcounter = zeros(1,numel(theFiles));
+% percentdifferencepertrialcorrect = zeros(1,numel(theFiles));
+% percentdifferencepertrialincorrect = zeros(1,numel(theFiles));
 for k = 1 : length(theFiles)
     behavorialResponseArray=strings;
     baseFileName = theFiles(k).name;
     fullFileName = fullfile(theFiles(k).folder, baseFileName);
-    fprintf(1, 'Now reading %s\n', fullFileName);
+    %fprintf(1, 'Now reading %s\n', fullFileName);
     % Now do whatever you want with this file name,
     % such as reading it in as an image array with imread()
     Data=h5read(fullFileName,'/Trials');
@@ -131,7 +132,44 @@ for k = 1 : length(theFiles)
 %     Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100;
     percentcorrectcounter(k)=Correctpercentage;
     percentincorrectcounter(k)=Incorrectpercentage;
-    percentdifferencepertrialcorrect(k) = diff(percentcorrectcounter);
-    percentdifferencepertrialincorrect(k) = diff(percentincorrectcounter);
-end
     
+end
+percentdifferencepertrialcorrect = diff(percentcorrectcounter);
+percentdifferencepertrialincorrect = diff(percentincorrectcounter);
+overallperformancetodate_correct=(percentcorrectcounter(numel(theFiles))-percentcorrectcounter(1));
+overallperformancetodate_incorrect=(percentincorrectcounter(numel(theFiles))-percentincorrectcounter(1));
+performancearray = strings;
+performancearray(1,1)='Average Percent Correct';
+performancearray(1,2)= mean(percentcorrectcounter);
+performancearray(2,1)='Average Percent Incorrect';
+performancearray(2,2)= mean(percentincorrectcounter);
+
+performancearray(4,1)= '% Difference per trial (Correct)';
+u= numel(theFiles)-1;
+for n=1:u
+    percorr=percentdifferencepertrialcorrect(n);
+    performancearray(4+n,1)=percorr;
+end
+
+performancearray(4,2)= '% Difference per trial (Incorrect)';
+for t=1:u
+    perincorr=percentdifferencepertrialincorrect(t);
+    performancearray(4+t,2)=perincorr;
+end
+performancearray(1,4)= 'Overall Correct Performance Change to Date';
+performancearray(1,5)= overallperformancetodate_correct;
+performancearray(2,4)= 'Overall Incorrect Performance Change to Date';
+performancearray(2,5)= overallperformancetodate_incorrect;
+
+writematrix(performancearray,("Interpreted_Performance_Data"),'FileType','spreadsheet');
+plot(percentcorrectcounter,'b')
+hold on
+plot(percentincorrectcounter,'r')
+grid on
+ylabel('Performance Percent')
+xlabel('Trial #')
+ylim([0 100]);
+legend('Percent Correct','Percent Incorrect')
+
+
+

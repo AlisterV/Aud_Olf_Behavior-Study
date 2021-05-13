@@ -99,6 +99,8 @@ end
 %     end
 % end
 GoHitCounter = 0;
+GoTrialPerformance=zeros(1,NumTrials);
+NoGoTrialPerformance=zeros(1,NumTrials);
 NoGoHitCounter = 0;
 GoMissCounter = 0;
 NoGoMissCounter = 0;
@@ -116,8 +118,19 @@ behavorialResponseArray(9, 2) = "Go Miss";
 behavorialResponseArray(10, 2) = "No Go Hit";
 behavorialResponseArray(11, 2) = "No Go Miss";
 
-correctpercenttracker=zeros(1,NumTrials);
-incorrectpercenttracker=zeros(1,NumTrials);
+
+figure(1)
+ratio=[2 1 1];
+pbaspect(ratio)
+hold on
+grid on
+yticks(0:20:100)
+xlim([1 NumTrials])
+title('Performance')
+ylabel('Percent Correct')
+xlabel('Trial #')
+% correctpercenttracker=zeros(1,NumTrials);
+% incorrectpercenttracker=zeros(1,NumTrials);
 for Trials = 1:NumTrials
     % Get the animal's response for this trial.
     mouseResponse = Data.response(Trials);
@@ -130,26 +143,63 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "Go Hit";
         GoHitCounter = GoHitCounter + 1;
         behavorialResponseArray(8, 1) = GoHitCounter;
-        correctpercenttracker(Trials)=1;
-        incorrectpercenttracker(Trials)=0;
+%         correctpercenttracker(Trials)=1;
+%         incorrectpercenttracker(Trials)=0;
+        GoTrialPerformance(Trials)= 1;
+        num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+        if isnan(num)
+            num=0;
+        end
+        scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+        hold on
+        scatter(Trials,num,'r','filled')
+        hold on
     elseif mouseResponse == 2
         behavorialResponseArray(6, Trials) = "NoGo Hit";
         NoGoHitCounter = NoGoHitCounter + 1;
-        behavorialResponseArray(9, 1) = NoGoHitCounter;
-        correctpercenttracker(Trials)=1;
-        incorrectpercenttracker(Trials)=0;
+        behavorialResponseArray(10, 1) = NoGoHitCounter;
+%         correctpercenttracker(Trials)=1;
+%         incorrectpercenttracker(Trials)=0;
+        NoGoTrialPerformance(Trials)=1;
+        num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+        if isnan(num)
+            num=0;
+        end
+        scatter(Trials,num,47,'b','filled')
+        hold on
+        scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+        hold on
+        
     elseif mouseResponse == 3
         behavorialResponseArray(6, Trials) = "Go Miss";
         GoMissCounter = GoMissCounter + 1;
-        behavorialResponseArray(10, 1) = GoMissCounter;
-        correctpercenttracker(Trials)=0;
-        incorrectpercenttracker(Trials)=1;
+        behavorialResponseArray(9, 1) = GoMissCounter;
+%         correctpercenttracker(Trials)=0;
+%         incorrectpercenttracker(Trials)=1;
+        GoTrialPerformance(Trials)=-1;
+        num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+        if isnan(num)
+            num=0;
+        end
+        scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+        hold on
+        scatter(Trials,num,'r','filled')
+        hold on
     elseif mouseResponse == 4
         behavorialResponseArray(6, Trials) = "NoGo Miss";
         NoGoMissCounter = NoGoMissCounter + 1;
         behavorialResponseArray(11, 1) = NoGoMissCounter;
-        correctpercenttracker(Trials)=0;
-        incorrectpercenttracker(Trials)=1;
+%         correctpercenttracker(Trials)=0;
+%         incorrectpercenttracker(Trials)=1;
+        NoGoTrialPerformance(Trials) = -1;
+        num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+        if isnan(num)
+            num=0;
+        end
+        scatter(Trials,num,47,'b','filled')
+        hold on
+        scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+        hold on
 %     elseif mouseResponse == 5
 %         behavorialResponseArray(6, Trials) = "Left no response";
 %         LeftNoResponseCounter = LeftNoResponseCounter + 1;
@@ -159,10 +209,12 @@ for Trials = 1:NumTrials
 %         RightNoResponseCounter = RightNoResponseCounter + 1;
 %         behavorialResponseArray(13, 1) = RightNoResponseCounter;
     end
+    legend('Go Trial','NoGo Trial','location','best')
+    legend('boxoff')
 end
 % Also indicate the total number of trials for this training session. 
-behavorialResponseArray(15, 1) = NumTrials;
-behavorialResponseArray(15, 2) = 'Total number of trials';
+behavorialResponseArray(13, 1) = NumTrials;
+behavorialResponseArray(13, 2) = 'Total number of trials';
 Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100;
 Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100;
 behavorialResponseArray(9,3)= Correctpercentage;
@@ -173,6 +225,26 @@ behavorialResponseArray(10,4)= '% Incorrect';
 % save the response time data and the behavorial response data to an excel file.
 writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)),'FileType','spreadsheet','Sheet',FileNameInput);
 
+
+% AllGoPerf=nonzeros(GoTrialPerformance);
+% AllNoGoPerf=nonzeros(NoGoTrialPerformance);
+
+
+GoPerf=zeros(1,NumTrials);
+% for u=1:NumTrials
+%     holder=sum(GoTrialPerformance(1:u));
+%     GoPerf(u)=holder/u;
+% end
+% 
+% NoGoPerf=zeros(1,NumTrials);
+% for u=1:NumTrials
+%     holder2=sum(NoGoTrialPerformance(1:u));
+%     NoGoPerf(u)=holder2/u;
+% end
+
+% plot(GoPerf,'b')
+% hold on
+% plot(NoGoPerf,'r')
     %writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(fullFileName)), 'FileType', 'spreadsheet');
     
     % writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');
@@ -186,37 +258,64 @@ writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToString
 % Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100
 % Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100
 
-perc=zeros(1,NumTrials);
-perct=zeros(1,NumTrials);
- for u = 1:NumTrials
-     tracker=correctpercenttracker(u);
-      if tracker == 1
-          holder= sum(correctpercenttracker(1:u));
-          perc(u)=holder/u;
-      elseif tracker == 0
-          invert= ~correctpercenttracker;
-          holder2=sum(invert(1:u));
-          perct(u)=holder2/u;
-      end
- end
- figure(1)
- a=nonzeros(perc)'*100;
- plot(a,'b')
- hold on
- b=nonzeros(perct)'*100;
- plot(b,'r')
- ylim([0 100])
- grid on
- title('Aligned Percentage Correct/Incorrect')
- legend('Correct Perecntage','Incorrect Percentage')
- 
- hold off
- 
- figure(2)
- plot(perc*100,'b')
- hold on
- plot(perct*100,'r')
- ylim([0 100])
- grid on
- title('Percent Correct/Incorrect For Current Trial')
- legend('Correct Percentage','Incorrect Percentage')
+% perc=zeros(1,NumTrials);
+% perct=zeros(1,NumTrials);
+%  for u = 1:NumTrials
+%      tracker=correctpercenttracker(u);
+%       if tracker == 1
+%           holder= sum(correctpercenttracker(1:u));
+%           perc(u)=holder/u;
+%       elseif tracker == 0
+%           invert= ~correctpercenttracker;
+%           holder2=sum(invert(1:u));
+%           perct(u)=holder2/u;
+%       end
+%  end
+% %  
+%  for i=1:NumTrials
+%      if GoTrialPerformance(i) == 0 && i > 1
+%          GoPerf(i)=GoTrialPerformance(i);
+%          GoTrialPerformance(i)= [];
+%          i=i-1;
+%      elseif GoTrialPerformance(i) == 1
+%         holder=sum(GoTrialPerformance(1:i));
+%         GoPerf(i)=holder/i;
+%      elseif GoTrialPerformance(i) == -1
+%          GoTrialPerformance(i)= 0;         
+%      end
+%      if i==1 && GoTrialPerformance(i) == 0
+%          GoPerf(i)=GoTrialPerformance(i);
+%          GoTrialPerformance(i)= [];
+%          i=0;
+%      end
+% 
+%  end
+%  
+%   for k=1:NumTrials
+%      if perct(i) == 0
+%          perct(i)=perct(i-1);
+%      elseif perct(i) == 1
+%      end
+%  end
+         
+%  figure(1)
+%  a=nonzeros(perc)'*100;
+%  plot(a,'b')
+%  hold on
+%  b=nonzeros(perct)'*100;
+%  plot(b,'r')
+%  ylim([0 100])
+%  grid on
+%  title('Aligned Percentage Correct/Incorrect')
+%  legend('Correct Perecntage','Incorrect Percentage')
+%  
+%  hold off
+%  
+%  figure(2)
+%  plot(perc*100,'b')
+%  hold on
+%  plot(perct*100,'r')
+%  ylim([0 100])
+%  grid on
+%  title('Percent Correct/Incorrect For Current Trial')
+%  legend('Correct Percentage','Incorrect Percentage')

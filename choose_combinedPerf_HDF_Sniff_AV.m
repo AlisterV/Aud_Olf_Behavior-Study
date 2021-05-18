@@ -293,7 +293,10 @@ for k = 1 : length(theFiles)
     performancearray(9,k)="NoGo Misses: " + convertCharsToStrings(NoGoMissCounterarray);
     performancearray(10,k)= "Correct Percent = "+convertCharsToStrings(percentcorrectcounter(k));
     performancearray(11,k)= "Incorrect Percent = "+convertCharsToStrings(percentincorrectcounter(k));
-    performancearray(12,k)="d prime: "; %PUT IN VARIABLE HERE (calculate above)
+    pHit=Correctpercentage/100; %NEED TO CHECK, possibly needs to be GoHits/All Trials
+    pFA=Incorrectpercentage/100; %NEED TO CHECK, possibly needs to be just NoGoMiss/All Trials
+    [dpri,ccrit] = dprime(pHit,pFA);
+    performancearray(12,k)="d prime: " +convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
     
 end
 

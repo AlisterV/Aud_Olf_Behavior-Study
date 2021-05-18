@@ -14,11 +14,29 @@ clc;
 windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
 Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
 
-%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
-FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
-NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
+myFolder = 'C:\VoyeurData';
+% Check to make sure that folder actually exists.  Warn user if it doesn't.
+if ~isfolder(myFolder)
+    errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
+    uiwait(warndlg(errorMessage));
+    myFolder = uigetdir(); % Ask for a new one.
+    if myFolder == 0
+         % User clicked Cancel
+         return;
+    end
+end
 
-Data =  h5read(NameFile,'/Trials');
+%% HOLD Ctrl and click desired files
+% Get a list of all files in the folder with the desired file name pattern.
+filePattern = fullfile(myFolder, '*.h5');
+%opens user access to the desired folder 
+FileNameInput = uigetfile(filePattern);
+
+%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
+%FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
+%NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
+
+Data =  h5read(FileNameInput,'/Trials');
 % mouse = input("What is the number of this mouse? ");
 NumTrials = length(Data.trialNumber); %Determine the number of trials in this experiment in order to get the sniff data later on.
 Fs = 1000; %Our sampling frequency is 1000Hz.
@@ -26,7 +44,7 @@ Fs = 1000; %Our sampling frequency is 1000Hz.
 %%  Take the behavorial data and output it to a .csv file.
 % Get the animal's response time in miliseconds by subtracting their first lick by the odor valve onset.
 % for each tiral in the experiment.
-
+behavorialResponseArray =strings;
 for Trials = 1:NumTrials
     % response time is equal to the time of the first lick minus the time
     % of the odor valve onset.
@@ -222,29 +240,11 @@ behavorialResponseArray(9,4)= '% Correct';
 behavorialResponseArray(10,3)= Incorrectpercentage;
 behavorialResponseArray(10,4)= '% Incorrect';
 
+file=erase(FileNameInput,'.h5');
 % save the response time data and the behavorial response data to an excel file.
-writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)),'FileType','spreadsheet','Sheet',FileNameInput);
+writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(file)+".xlsx"),'FileType','spreadsheet');
 
 
-% AllGoPerf=nonzeros(GoTrialPerformance);
-% AllNoGoPerf=nonzeros(NoGoTrialPerformance);
-
-
-GoPerf=zeros(1,NumTrials);
-% for u=1:NumTrials
-%     holder=sum(GoTrialPerformance(1:u));
-%     GoPerf(u)=holder/u;
-% end
-% 
-% NoGoPerf=zeros(1,NumTrials);
-% for u=1:NumTrials
-%     holder2=sum(NoGoTrialPerformance(1:u));
-%     NoGoPerf(u)=holder2/u;
-% end
-
-% plot(GoPerf,'b')
-% hold on
-% plot(NoGoPerf,'r')
     %writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(fullFileName)), 'FileType', 'spreadsheet');
     
     % writematrix(behavorialResponseArray, ("Interpreted Data Mouse " + mouse + " " + datestr(now,'yyyy_mm_dd') + datestr(now)), 'FileType', 'spreadsheet');

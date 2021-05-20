@@ -60,10 +60,365 @@ NoGoHitCounter = 0;
 GoMissCounter = 0;
 %initializes a counter for the NoGo Misses
 NoGoMissCounter = 0;
+
+%prompts the user
+answer = questdlg('Would you like a COMBINED PERFORMANCE GRAPH from all selected files?');
+% takes user response and changes into a value for the following if
+% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+switch answer
+    case 'Yes'
+        resp = 1;
+    case 'No'
+        resp = 2;
+end
+
+%% Starts a loop through all of the selected files
+%goes through loop if the user's response was Yes/1
+if resp == 1
+for k = 1 : length(theFiles)
+    %starts an array for the behavioral response
+    behavorialResponseArray=strings;
+    %selects the kth file
+    fullFileName = theFiles{k};
+    %reads the file and keeps the data in this variable
+    Data=h5read(fullFileName,'/Trials');
+    %Determines the number of trials for this particular file
+    NumTrials = length(Data.trialNumber);
+    %Our sampling frequency is 1000Hz.
+    Fs = 1000;
+    %initializes a counter for the Go Hits
+    GoHitCounterarray = 0;
+    %initializes a counter for the NoGo Hits
+    NoGoHitCounterarray = 0;
+    %initializes a counter for the Go Misses
+    GoMissCounterarray = 0;
+    %initializes a counter for the NoGo Misses
+    NoGoMissCounterarray = 0;
+    
+    %initializes the figure for the performance graph
+    figure(1)
+    %ratio=[2 1 1];
+    %pbaspect(ratio)
+    %holds onto the graph for all data
+    hold on
+    %puts a grid on the graph
+    grid on
+    %makes sure the y axis goes from zero to one hundred by a count of 20
+    yticks(0:20:100)
+    %titles the performance graph
+    title('Combined Performance')
+    %creates a yaxis label
+    ylabel('Percent Correct')
+    %creates an xaxis label
+    xlabel('Trial #')
+
+    %% Starts a loop for the specified kth file and loops through each trial
+    for Trials = 1:NumTrials
+        % Get the animal's response for this trial.
+        mouseResponse = Data.response(Trials);
+        % Save the numerical result of this mouses' behavior for the trial.
+        behavorialResponseArray(5, Trials) = mouseResponse;
+        %keeps track of the number of trials through all files
+        alltrialcounter(k,Trials)=1;
+        
+        %% Translates the behavioral response into words for array
+        % if the mouse response is 1 then trial was a Go Hit
+        if mouseResponse == 1
+            %adds one to the array counter for Go Hit
+            GoHitCounterarray = GoHitCounterarray +1;
+            %adds one to the counter for Go Hit
+            GoHitCounter = GoHitCounter + 1;
+            %calculates the current performance of No Go Trials
+            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+              num=0;
+            end
+            %sums the all trial counter so the performance graph can keep
+            %track of what percent goes with what trial
+            xdata=sum(alltrialcounter,'all');
+            %creates the performance plot with the current trial number
+            %(xdata) and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(xdata,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+            %holds onto the graph to plot NoGo Data
+            hold on
+            %plots NoGo Data
+            scatter(xdata,num,'r','filled')
+            hold on
+            
+        % if the mouse response is 2 then trial was a NoGo Hit
+        elseif mouseResponse == 2
+            %adds one to the array counter for NoGoHit
+            NoGoHitCounterarray = NoGoHitCounterarray +1;
+            %adds one to the counter for NoGo Hit
+            NoGoHitCounter = NoGoHitCounter + 1;
+            %calculates the current performance of Go Trials
+            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+              num=0;
+            end
+            %sums the all trial counter so the performance graph can keep
+            %track of what percent goes with what trial
+            xdata=sum(alltrialcounter,'all');
+            %creates the performance plot with the current trial number
+            %(xdata) and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(xdata,num,47,'b','filled')
+            %holds onto the graph to plot NoGo Data
+            hold on
+            %plots NoGo Data
+            scatter(xdata,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+            hold on
+            
+        % if the mouse response is 3 then trial was a Go Miss
+        elseif mouseResponse == 3
+            %adds one to the array counter for Go Miss
+            GoMissCounterarray = GoMissCounterarray + 1;
+            %adds one to the counter for Go Miss
+            GoMissCounter = GoMissCounter + 1;
+            %calculates the current performance of NoGo Trials
+            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+              num=0;
+            end
+            %sums the all trial counter so the performance graph can keep
+            %track of what percent goes with what trial
+            xdata=sum(alltrialcounter,'all');
+            %creates the performance plot with the current trial number
+            %(xdata) and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(xdata,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+            %holds onto the graph to plot NoGo Data
+            hold on
+            %plots NoGo Data
+            scatter(xdata,num,'r','filled')
+            hold on
+            
+        % if the mouse response is 4 then trial was a NoGo Miss
+        elseif mouseResponse == 4
+            %adds one to the counter for NoGo Miss
+            NoGoMissCounterarray = NoGoMissCounterarray + 1;
+            %adds one to the counter for NoGo Miss
+            NoGoMissCounter = NoGoMissCounter + 1;
+            %calculates the current performance of Go Trials
+            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+              num=0;
+            end
+            %sums the all trial counter so the performance graph can keep
+            %track of what percent goes with what trial
+            xdata=sum(alltrialcounter,'all');
+            %creates the performance plot with the current trial number
+            %(xdata) and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(xdata,num,47,'b','filled')
+            %holds onto the graph to plot NoGo Data
+            hold on
+            %plots NoGo Data
+            scatter(xdata,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+            hold on
+        end
+    end
+    %creates a legend for the performance graph, picking the best
+    %location to put it based on data points
+    legend('Go Trial','NoGo Trial','location','best')
+    %does not box the legend
+    legend('boxoff')
+    hold off
+end
+end
+
+%prompts the user
+answer = questdlg('Would you like SEPARATE PERFORMANCE GRAPHS for each file?');
+% takes user response and changes into a value for the following if
+% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+switch answer
+    case 'Yes'
+        resp2 = 1;
+    case 'No'
+        resp2 = 2;
+end
+
+%goes through loop if the user's response was Yes/1
+if resp2 == 1
+%loop through one through the length of all the selected files
+for s=1:length(theFiles)
+    %creates a new figure
+    figure(2+s)
+    %initializes a counter for go hits
+    GoHitCounter=0;
+    %initializes a counter for nogo hits
+    NoGoHitCounter = 0;
+    %initializes a counter for go misses
+    GoMissCounter = 0;
+    %initializes a counter for nogo misses
+    NoGoMissCounter = 0;
+    %selects the kth file
+    fullFileName = theFiles{s};
+    %reads the file and keeps the data in this variable
+    Data=h5read(fullFileName,'/Trials');
+    %Determines the number of trials for this particular file
+    NumTrials = length(Data.trialNumber);
+    %finds this specific mouse number from the sth file
+    mousenum=Data.mouse(1:3,1)';
+    %finds the specific session number from the sth file
+    sessionnum=Data.session(1);
+    %loops through one to all the trials from the sth file
+    for Trials = 1:NumTrials
+        %takes the mouses response from the specific trial from the sth
+        %file
+        mouseResponse = Data.response(Trials);
+        %if statement depending on the mouse's response
+        
+        %if the mouses response was 1, trial was a go hit
+        if mouseResponse == 1
+            %adds one to the go hit counter
+            GoHitCounter = GoHitCounter + 1;
+            %calculates the current performance of NoGo Trials
+            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+                num=0;
+            end
+            %creates the performance plot with the current trial number and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+            %holds onto the scatter
+            hold on
+            %plots the no go performance
+            scatter(Trials,num,'r','filled')
+            hold on
+            
+        %if the mouses response was 2, trial was nogo hit
+        elseif mouseResponse == 2
+            %adds one to the nogo hit counter
+            NoGoHitCounter = NoGoHitCounter + 1;
+            %calculates the current performance of Go trials
+            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+                num=0;
+            end
+            %creates the performance plot with the current trial number and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(Trials,num,47,'b','filled')
+            %holds onto the graph
+            hold on
+            %plots the nogo performance
+            scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+            hold on
+
+        %if the mouses response was 3, trial was a go miss
+        elseif mouseResponse == 3
+            %adds one to the go miss counter
+            GoMissCounter = GoMissCounter + 1;
+            %calculates the current performance of no go trials
+            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+                num=0;
+            end
+            %creates the performance plot with the current trial number and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+            %holds onto the graph
+            hold on
+            %plots the nogo performance
+            scatter(Trials,num,'r','filled')
+            hold on
+            
+        %if the mouses response was 4, trial was a nogo miss
+        elseif mouseResponse == 4
+            %adds one to the nogo miss counter
+            NoGoMissCounter = NoGoMissCounter + 1;
+            %calculates the current performance of go trials 
+            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+            % if num = NaN the code will not work, this ensures that if
+            % that happens then num = 0 so the code will continue
+            if isnan(num)
+                num=0;
+            end
+            %creates the performance plot with the current trial number and the Go Trial performance; 47 makes the Go Trial
+            %data point slightly larger so in the case of overlap, it is
+            %obvious that there are two points
+            scatter(Trials,num,47,'b','filled')
+            %holds onto the graph
+            hold on
+            %plots the nogo performance
+            scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+            hold on
+        end
+    end
+    %creates a title for each graph with the current mouses number and
+    %session number
+    title("Performance of Mouse "+convertCharsToStrings(mousenum)+" from Session "+convertCharsToStrings(sessionnum))
+    %sets the y axis 
+    yticks(0:20:100)
+    %creates a yaxis label
+    ylabel('Percent Correct')
+    %creates an xaxis label
+    xlabel('Trial #')
+    %creates a legend for the performance graph, picking the best
+    %location to put it based on data points
+    legend('Go Trial','NoGo Trial','location','best')
+    %does not box the legend
+    legend('boxoff')
+    grid on
+    hold off
+end
+end
+
+
+%initalizes a counter for correct percentages from one to the number of
+%files selected
+percentcorrectcounter = zeros(1,numel(theFiles));
+%initalizes a counter for incorrect percentages from one to the number of
+%files selected
+percentincorrectcounter = zeros(1,numel(theFiles));
+%initializes a counter for the Go Hits
+GoHitCounter = 0;
+%initializes a counter for the NoGo Hits
+NoGoHitCounter = 0;
+%initializes a counter for the Go Misses
+GoMissCounter = 0;
+%initializes a counter for the NoGo Misses
+NoGoMissCounter = 0;
 %initializes the performance array
 performancearray=strings;
 
+%prompts the user
+answer = questdlg('Would you like SEPARATE SPREADSHEETS for each file?');
+% takes user response and changes into a value for the following if
+% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+switch answer
+    case 'Yes'
+        resp = 1;
+    case 'No'
+        resp = 2;
+end
+
 %% Starts a loop through all of the selected files
+%goes through loop if the user's response was Yes/1
+if resp == 1
+%loop through one through the length of all the selected files
 for k = 1 : length(theFiles)
     %starts an array for the behavioral response
     behavorialResponseArray=strings;
@@ -106,23 +461,6 @@ for k = 1 : length(theFiles)
     behavorialResponseArray(10, 2) = "No Go Hit";
     behavorialResponseArray(11, 2) = "No Go Miss";
     
-    %initializes the figure for the performance graph
-    figure(1)
-    %ratio=[2 1 1];
-    %pbaspect(ratio)
-    %holds onto the graph for all data
-    hold on
-    %puts a grid on the graph
-    grid on
-    %makes sure the y axis goes from zero to one hundred by a count of 20
-    yticks(0:20:100)
-    %titles the performance graph
-    title('Performance')
-    %creates a yaxis label
-    ylabel('Percent Correct')
-    %creates an xaxis label
-    xlabel('Trial #')
-
     %% Starts a loop for the specified kth file and loops through each trial
     for Trials = 1:NumTrials
         % Get the animal's response for this trial.
@@ -144,26 +482,6 @@ for k = 1 : length(theFiles)
             GoHitCounter = GoHitCounter + 1;
             %inputs the number of Go Hits so far into the array
             behavorialResponseArray(8, 1) = GoHitCounterarray;
-            %calculates the current performance of No Go Trials
-            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
-            % if num = NaN the code will not work, this ensures that if
-            % that happens then num = 0 so the code will continue
-            if isnan(num)
-              num=0;
-            end
-            %sums the all trial counter so the performance graph can keep
-            %track of what percent goes with what trial
-            xdata=sum(alltrialcounter,'all');
-            %creates the performance plot with the current trial number
-            %(xdata) and the Go Trial performance; 47 makes the Go Trial
-            %data point slightly larger so in the case of overlap, it is
-            %obvious that there are two points
-            scatter(xdata,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
-            %holds onto the graph to plot NoGo Data
-            hold on
-            %plots NoGo Data
-            scatter(xdata,num,'r','filled')
-            hold on
             
         % if the mouse response is 2 then trial was a NoGo Hit
         elseif mouseResponse == 2
@@ -174,26 +492,7 @@ for k = 1 : length(theFiles)
             NoGoHitCounter = NoGoHitCounter + 1;
             %inputs the number of NoGo Hits so far into the array
             behavorialResponseArray(10, 1) = NoGoHitCounterarray;
-            %calculates the current performance of Go Trials
-            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
-            % if num = NaN the code will not work, this ensures that if
-            % that happens then num = 0 so the code will continue
-            if isnan(num)
-              num=0;
-            end
-            %sums the all trial counter so the performance graph can keep
-            %track of what percent goes with what trial
-            xdata=sum(alltrialcounter,'all');
-            %creates the performance plot with the current trial number
-            %(xdata) and the Go Trial performance; 47 makes the Go Trial
-            %data point slightly larger so in the case of overlap, it is
-            %obvious that there are two points
-            scatter(xdata,num,47,'b','filled')
-            %holds onto the graph to plot NoGo Data
-            hold on
-            %plots NoGo Data
-            scatter(xdata,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
-            hold on
+
             
         % if the mouse response is 3 then trial was a Go Miss
         elseif mouseResponse == 3
@@ -204,26 +503,7 @@ for k = 1 : length(theFiles)
             GoMissCounter = GoMissCounter + 1;
             %inputs the number of Go Misses so far into the array
             behavorialResponseArray(9, 1) = GoMissCounterarray;
-            %calculates the current performance of NoGo Trials
-            num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
-            % if num = NaN the code will not work, this ensures that if
-            % that happens then num = 0 so the code will continue
-            if isnan(num)
-              num=0;
-            end
-            %sums the all trial counter so the performance graph can keep
-            %track of what percent goes with what trial
-            xdata=sum(alltrialcounter,'all');
-            %creates the performance plot with the current trial number
-            %(xdata) and the Go Trial performance; 47 makes the Go Trial
-            %data point slightly larger so in the case of overlap, it is
-            %obvious that there are two points
-            scatter(xdata,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
-            %holds onto the graph to plot NoGo Data
-            hold on
-            %plots NoGo Data
-            scatter(xdata,num,'r','filled')
-            hold on
+
             
         % if the mouse response is 4 then trial was a NoGo Miss
         elseif mouseResponse == 4
@@ -234,29 +514,9 @@ for k = 1 : length(theFiles)
             NoGoMissCounter = NoGoMissCounter + 1;
             %inputs the number of NoGo Misses so far into the array
             behavorialResponseArray(11, 1) = NoGoMissCounterarray;
-            %calculates the current performance of Go Trials
-            num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
-            % if num = NaN the code will not work, this ensures that if
-            % that happens then num = 0 so the code will continue
-            if isnan(num)
-              num=0;
-            end
-            %sums the all trial counter so the performance graph can keep
-            %track of what percent goes with what trial
-            xdata=sum(alltrialcounter,'all');
-            %creates the performance plot with the current trial number
-            %(xdata) and the Go Trial performance; 47 makes the Go Trial
-            %data point slightly larger so in the case of overlap, it is
-            %obvious that there are two points
-            scatter(xdata,num,47,'b','filled')
-            %holds onto the graph to plot NoGo Data
-            hold on
-            %plots NoGo Data
-            scatter(xdata,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
-            hold on
+
         end
     end
-    
     %totals the number of trials
     behavorialResponseArray(15, 1) = NumTrials;
     behavorialResponseArray(15, 2) = 'Total number of trials';
@@ -276,35 +536,137 @@ for k = 1 : length(theFiles)
     %creates a spreadsheet matrix using the behavioral array for the kth file
     writematrix(behavorialResponseArray,"Interpreted_Data_" + convertCharsToStrings(file)+".xlsx",'FileType','spreadsheet');
     %format:  writematrix(dataset, "title of file", 'FileType', 'spreadsheet')
-
-    %counts the percent correct for the kth file
-    percentcorrectcounter(k)=Correctpercentage;
-    %counts the percent incorrect for the kth file
-    percentincorrectcounter(k)=Incorrectpercentage;
-    mousenum=Data.mouse(1:3,1)';
-    performancearray(1,k)="Mouse: " +convertCharsToStrings(mousenum);
-    sessionnum=Data.session(1);
-    performancearray(2,k)="Session # " +convertCharsToStrings(sessionnum);
-    performancearray(3,k)="# of Trials: " +convertCharsToStrings(NumTrials);
-    performancearray(5,k)="Trial Responses";
-    performancearray(6,k)="Go Hits: " + convertCharsToStrings(GoHitCounterarray);
-    performancearray(7,k)="NoGo Hits: " + convertCharsToStrings(NoGoHitCounterarray);
-    performancearray(8,k)="Go Misses: " + convertCharsToStrings(GoMissCounterarray);
-    performancearray(9,k)="NoGo Misses: " + convertCharsToStrings(NoGoMissCounterarray);
-    performancearray(10,k)= "Correct Percent = "+convertCharsToStrings(percentcorrectcounter(k));
-    performancearray(11,k)= "Incorrect Percent = "+convertCharsToStrings(percentincorrectcounter(k));
-    pHit=Correctpercentage/100; %NEED TO CHECK, possibly needs to be GoHits/All Trials
-    pFA=Incorrectpercentage/100; %NEED TO CHECK, possibly needs to be just NoGoMiss/All Trials
-    [dpri,ccrit] = dprime(pHit,pFA);
-    performancearray(12,k)="d prime: " +convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
-    
+end
 end
 
-%creates a legend for the performance graph, picking the best
-%location to put it based on data points
-legend('Go Trial','NoGo Trial','location','best')
-%does not box the legend
-legend('boxoff')
+%prompts the user
+answer = questdlg('Would you like an OVERALL PERFORMANCE REPORT?');
+% takes user response and changes into a value for the following if
+% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+switch answer
+    case 'Yes'
+        resp = 1;
+    case 'No'
+        resp = 2;
+end
+%% Starts a loop through all of the selected files
+%goes through loop if the user's response was Yes/1
+if resp == 1
+%loop through one through the length of all the selected files
+for k = 1 : length(theFiles)
+    %selects the kth file
+    fullFileName = theFiles{k};
+    %reads the file and keeps the data in this variable
+    Data=h5read(fullFileName,'/Trials');
+    %Determines the number of trials for this particular file
+    NumTrials = length(Data.trialNumber);
+    %Our sampling frequency is 1000Hz.
+    Fs = 1000;
+    %initializes a counter for the Go Hits
+    GoHitCounterarray = 0;
+    %initializes a counter for the NoGo Hits
+    NoGoHitCounterarray = 0;
+    %initializes a counter for the Go Misses
+    GoMissCounterarray = 0;
+    %initializes a counter for the NoGo Misses
+    NoGoMissCounterarray = 0;
+    %% Starts a loop for the specified kth file and loops through each trial
+    for Trials = 1:NumTrials
+        % Get the animal's response for this trial.
+        mouseResponse = Data.response(Trials);
+        %keeps track of the number of trials through all files
+        alltrialcounter(k,Trials)=1;
+        
+        % if the mouse response is 1 then trial was a Go Hit
+        if mouseResponse == 1
+            %adds one to the array counter for Go Hit
+            GoHitCounterarray = GoHitCounterarray +1;
+            
+        % if the mouse response is 2 then trial was a NoGo Hit
+        elseif mouseResponse == 2
+            %adds one to the array counter for NoGoHit
+            NoGoHitCounterarray = NoGoHitCounterarray +1;
+            
+        % if the mouse response is 3 then trial was a Go Miss
+        elseif mouseResponse == 3
+            %adds one to the array counter for Go Miss
+            GoMissCounterarray = GoMissCounterarray + 1;
+            
+        % if the mouse response is 4 then trial was a NoGo Miss
+        elseif mouseResponse == 4
+            %adds one to the counter for NoGo Miss
+            NoGoMissCounterarray = NoGoMissCounterarray + 1;
+        end
+    end
+    %calculates the correct percentage for this session
+    Correctpercentage=((GoHitCounterarray + NoGoHitCounterarray)/NumTrials)*100;
+    %calculates the incorrect percentage for this session
+    Incorrectpercentage=((GoMissCounterarray + NoGoMissCounterarray)/NumTrials)*100;
+    %holds onto the correct percentage from this session
+    percentcorrectcounter(k)=Correctpercentage;
+    %holds onto the incorrect percentage from this session
+    percentincorrectcounter(k)=Incorrectpercentage;
+    %specifies the mouses number from the kth file
+    mousenum=Data.mouse(1:3,1)';
+    %writes the mouses number in the performance array
+    performancearray(1,k)="Mouse: " +convertCharsToStrings(mousenum);
+    %specifies the session number for the kth file
+    sessionnum=Data.session(1);
+    %write the session number in the performance array
+    performancearray(2,k)="Session # " +convertCharsToStrings(sessionnum);
+    %writes the number of trials in the performance array
+    performancearray(3,k)="# of Trials: " +convertCharsToStrings(NumTrials);
+    %labels trial responses
+    performancearray(5,k)="Trial Responses";
+    %writes the number of go hits
+    performancearray(6,k)="Go Hits: " + convertCharsToStrings(GoHitCounterarray);
+    %writes the number of nogo hits
+    performancearray(7,k)="NoGo Hits: " + convertCharsToStrings(NoGoHitCounterarray);
+    %writes the number of go misses
+    performancearray(8,k)="Go Misses: " + convertCharsToStrings(GoMissCounterarray);
+    %writes the number of nogo misses
+    performancearray(9,k)="NoGo Misses: " + convertCharsToStrings(NoGoMissCounterarray);
+    %writes the correct percent
+    performancearray(10,k)= "Correct Percent = "+convertCharsToStrings(percentcorrectcounter(k));
+    %writes the incorrect percent
+    performancearray(11,k)= "Incorrect Percent = "+convertCharsToStrings(percentincorrectcounter(k));
+    %calculates the hit proportion
+    pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray); %NEED TO CHECK, possibly needs to be GoHits/All Trials
+    %calculates the false alarm proportion
+    pFA=NoGoMissCounterarray/(NoGoMissCounterarray+NoGoHitCounterarray); %NEED TO CHECK, possibly needs to be just NoGoMiss/All Trials
+    nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
+    nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
+    % nTarget=NumTrials;
+    % nDistract=NumTrials;
+    %calculates the d prime number by calling this function
+    [dpri,ccrit] = dprime(pHit,pFA,nTarget,nDistract);
+    %calls figure
+    figure(2)
+    hold on
+    %plots the d prime value
+    scatter(sessionnum, dpri,'filled')
+    %sets up legend
+    legend('dprime')
+    hold off
+    %writes the d prime in the array
+    performancearray(12,k)="d prime: " +convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
+end
+%finds average of correct percent
+avgcorr= mean(percentcorrectcounter);
+%writes correct percent average
+performancearray(15,1)="Average Percent Correct: " + convertCharsToStrings(avgcorr);
+%finds average of incorrect percent
+avgincorr=mean(percentincorrectcounter);
+%writes incorrect percent average
+performancearray(16,1)="Average Percent Incorrect: " + convertCharsToStrings(avgincorr);
+%calculates the number of trials from every file
+alltrials=sum(alltrialcounter,'all');
+%writes total of trials
+performancearray(14,1)="Total Number of Trials: " + convertCharsToStrings(alltrials);
+%writes the performance array matrix
+writematrix(performancearray,"Interpreted_Performance_Data.xlsx",'FileType','spreadsheet');
+end
+
 %calculates the percent difference between each subsequent trial (i.e.
 %Trial 1 - Trial 0; Trial 2 - Trial 1
 %percentdifferencepertrialcorrect = diff(percentcorrectcounter);
@@ -316,14 +678,12 @@ legend('boxoff')
 % performancearray(12,2)= mean(percentcorrectcounter);
 % performancearray(13,1)='Average Percent Incorrect';
 % performancearray(13,2)= mean(percentincorrectcounter);
-
-avgcorr= mean(percentcorrectcounter);
-performancearray(15,1)="Average Percent Correct: " + convertCharsToStrings(avgcorr);
-avgincorr=mean(percentincorrectcounter);
-performancearray(16,1)="Average Percent Incorrect: " + convertCharsToStrings(avgincorr);
-%performancearray(14,2)= mean(percentincorrectcounter);
-performancearray(14,1)="Total Number of Trials: " + convertCharsToStrings(xdata);
-
+% figure(2)
+% for x=1:length(theFiles)
+%     subplot(1,x,x)
+%     subplot_maker(theFiles(x));
+%     hold on
+% end
 % performancearray(4,1)= '% Difference per trial (Correct)';
 % u= numel(theFiles)-1;
 % for n=1:u
@@ -341,7 +701,7 @@ performancearray(14,1)="Total Number of Trials: " + convertCharsToStrings(xdata)
 % performancearray(2,4)= 'Overall Incorrect Performance Change to Date';
 % performancearray(2,5)= overallperformancetodate_incorrect;
 
-writematrix(performancearray,("Interpreted_Performance_Data"),'FileType','spreadsheet');
+
 % plot(percentcorrectcounter,'b')
 % hold on
 % plot(percentincorrectcounter,'r')

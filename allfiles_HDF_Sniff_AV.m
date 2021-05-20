@@ -178,6 +178,8 @@ for k = 1 : length(theFiles)
             hold on
         end
     end
+    legend('Go Trial','NoGo Trial','location','best')
+    legend('boxoff')
 % Also indicate the total number of trials for this training session. 
     behavorialResponseArray(15, 1) = NumTrials;
     behavorialResponseArray(15, 2) = 'Total number of trials';
@@ -220,14 +222,89 @@ for k = 1 : length(theFiles)
     performancearray(9,k)="NoGo Misses: " + convertCharsToStrings(NoGoMissCounterarray);
     performancearray(10,k)= "Correct Percent = "+convertCharsToStrings(percentcorrectcounter(k));
     performancearray(11,k)= "Incorrect Percent = "+convertCharsToStrings(percentincorrectcounter(k));
-    pHit=Correctpercentage/100; %NEED TO CHECK, possibly needs to be GoHits/All Trials
-    pFA=Incorrectpercentage/100; %NEED TO CHECK, possibly needs to be just NoGoMiss/All Trials
+    pHit=GoHitCounter/(GoHitCounter+GoMissCounter); %NEED TO CHECK, possibly needs to be GoHits/All Trials
+    pFA=NoGoMissCounter/(NoGoMissCounter+NoGoHitCounter); %NEED TO CHECK, possibly needs to be just NoGoMiss/All Trials
     [dpri,ccrit] = dprime(pHit,pFA);
-    performancearray(12,k)="d prime: " + convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
-
+    figure(2)
+    hold on
+    scatter(sessionnum, dpri, 'filled')
+    legend('dprime')
+    hold off
+    performancearray(12,k)="d prime: " +convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
 end
+
+% for s=1:length(theFiles)
+%     figure(2+s)
+%     GoHitCounter=0;
+%     NoGoHitCounter = 0;
+%     GoMissCounter = 0;
+%     NoGoMissCounter = 0;
+%     baseFileName = theFiles(k).name;
+%     fullFileName = fullfile(theFiles(k).folder, baseFileName);
+%     %reads the file and keeps the data in this variable
+%     Data=h5read(fullFileName,'/Trials');
+%     %Determines the number of trials for this particular file
+%     NumTrials = length(Data.trialNumber);
+%     mousenum=Data.mouse(1:3,1)';
+%     sessionnum=Data.session(1);
+%     %subplot(floor(length(theFiles)/2),ceil(length(theFiles)/2),s)
+%     for Trials = 1:NumTrials
+%         mouseResponse = Data.response(Trials);
+%         if mouseResponse == 1
+%             GoHitCounter = GoHitCounter + 1;
+%             num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+%             if isnan(num)
+%                 num=0;
+%             end
+%             scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+%             hold on
+%             scatter(Trials,num,'r','filled')
+%             hold on
+%         elseif mouseResponse == 2
+%             NoGoHitCounter = NoGoHitCounter + 1;
+%             num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+%             if isnan(num)
+%                 num=0;
+%             end
+%             scatter(Trials,num,47,'b','filled')
+%             hold on
+%             scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+%             hold on
+% 
+%         elseif mouseResponse == 3
+%             GoMissCounter = GoMissCounter + 1;
+%             num=(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100;
+%             if isnan(num)
+%                 num=0;
+%             end
+%             scatter(Trials,(GoHitCounter/(GoHitCounter+GoMissCounter))*100,47,'b','filled')
+%             hold on
+%             scatter(Trials,num,'r','filled')
+%             hold on
+%         elseif mouseResponse == 4
+%             NoGoMissCounter = NoGoMissCounter + 1;
+%             num=(GoHitCounter/(GoHitCounter+GoMissCounter))*100;
+%             if isnan(num)
+%                 num=0;
+%             end
+%             scatter(Trials,num,47,'b','filled')
+%             hold on
+%             scatter(Trials,(NoGoHitCounter/(NoGoHitCounter+NoGoMissCounter))*100,'r','filled')
+%             hold on
+%         end
+%     end
+%     title("Performance of Mouse "+convertCharsToStrings(mousenum)+" from Session "+convertCharsToStrings(sessionnum))
+%     yticks(0:20:100)
+%     %creates a yaxis label
+%     ylabel('Percent Correct')
+%     %creates an xaxis label
+%     xlabel('Trial #')
+%     grid on
+%     hold off
+% end
 legend('Go Trial','NoGo Trial','location','best')
 legend('boxoff')
+
 %percentdifferencepertrialcorrect = diff(percentcorrectcounter);
 %percentdifferencepertrialincorrect = diff(percentincorrectcounter);
 %overallperformancetodate_correct=(percentcorrectcounter(numel(theFiles))-percentcorrectcounter(1));

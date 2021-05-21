@@ -21,28 +21,57 @@ Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which
 %NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
 %FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
 %NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
-
-
+myFolder = 'C:\VoyeurData';
+%prompts the user
+answer = questdlg('Would you like: ','Option','All Files for mouse','Choose files','All Files for mouse');
+% takes user response and changes into a value for the following if
+% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+switch answer
+    case 'All Files for mouse'
+        mousenum=input('Enter Mouse Number: ', 's');
+        mousexten=append('*',mousenum,'*.h5');
+        filePattern = fullfile(myFolder,mousexten); % Change to whatever pattern you need.
+        theFiles = dir(filePattern);
+    case 'Choose files'
+        if ~isfolder(myFolder)
+          errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
+          uiwait(warndlg(errorMessage));
+          myFolder = uigetdir(); % Ask for a new one.
+          if myFolder == 0
+            % User clicked Cancel
+            return;
+          end
+        end
+        % Get a list of all files in the folder with the desired file name pattern.
+        filePattern = fullfile(myFolder, '*.h5');
+        %opens user access to the desired folder
+        theFiles = uigetfile(filePattern,'Multiselect','on');
+end
 % Specify the folder where the files live.
 %% CHECK BEFORE EACH RUN
-myFolder = 'C:\VoyeurData';
+%myFolder = 'C:\VoyeurData';
 % Check to make sure that folder actually exists.  Warn user if it doesn't.
-if ~isfolder(myFolder)
-    errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
-    uiwait(warndlg(errorMessage));
-    myFolder = uigetdir(); % Ask for a new one.
-    if myFolder == 0
-         % User clicked Cancel
-         return;
-    end
-end
+%if ~isfolder(myFolder)
+%     errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
+%     uiwait(warndlg(errorMessage));
+%     myFolder = uigetdir(); % Ask for a new one.
+%     if myFolder == 0
+%          % User clicked Cancel
+%          return;
+%     end
+% end
 
 %% HOLD Ctrl and click desired files
 % Get a list of all files in the folder with the desired file name pattern.
-filePattern = fullfile(myFolder, '*.h5');
+%filePattern = fullfile(myFolder, '*.h5');
 %opens user access to the desired folder 
-theFiles = uigetfile(filePattern,'Multiselect','on');
+%theFiles = uigetfile(filePattern,'Multiselect','on');
 
+
+%mousenum=input('Enter Mouse Number: ', 's');
+%mousexten=append('*',mousenum,'*.h5');
+%filePattern = fullfile(myFolder,mousexten); % Change to whatever pattern you need.
+%theFiles = dir(filePattern);
 %initalizes a counter for correct percentages from one to the number of
 %files selected
 percentcorrectcounter = zeros(1,numel(theFiles));
@@ -67,6 +96,8 @@ for k = 1 : length(theFiles)
     %selects the kth file
     fullFileName = theFiles{k};
     %reads the file and keeps the data in this variable
+    %baseFileName = theFiles(k).name;
+    %fullFileName = fullfile(theFiles(k).folder, baseFileName);
     Data=h5read(fullFileName,'/Trials');
     %Determines the number of trials for this particular file
     NumTrials = length(Data.trialNumber);
@@ -120,13 +151,22 @@ for k = 1 : length(theFiles)
     end
     pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
     scatter(ax1,sessionnum,pHit)
+    xlabel(ax1,'Session #')
+    ylabel(ax1,'Percentage')
+    title(ax1,'Go Hit Percentage')
     hold([ax1,ax2,ax3],'on')
     pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
     scatter(ax2,sessionnum,pFA)
+    xlabel(ax2,'Session #')
+    ylabel(ax2,'Percentage')
+    title(ax2,'False Alarm Percentage')
     hold([ax1,ax2,ax3],'on')
     nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
     nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
     [dpri]=dprime(pHit,pFA,nTarget,nDistract);
     scatter(ax3,sessionnum,dpri)
+    xlabel(ax3,'Session #')
+    ylabel(ax3,"d'")
+    title(ax3,"d' over sessions")
     hold([ax1,ax2,ax3],'on')
 end

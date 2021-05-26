@@ -35,7 +35,7 @@ theFiles =string(uigetfile(filePattern,'Multiselect','on'));
     nogohit0=0;
     gomiss0=0;
     nogomiss0=0;
-        gohit80=0;
+    gohit80=0;
     nogohit80=0;
     gomiss80=0;
     nogomiss80=0;
@@ -85,11 +85,7 @@ for k = 1 : length(theFiles)
         end
     end
     
-    %do we need this?
-%     gohit0=0;
-%     nogohit0=0;
-%     gomiss0=0;
-%     nogomiss0=0;
+
     for r=1:length(s0response)
         if s0response(r) == 1
             gohit0=gohit0+1;
@@ -103,11 +99,7 @@ for k = 1 : length(theFiles)
         end
     end
     
-    
-    gohit50=0;
-    nogohit50=0;
-    gomiss50=0;
-    nogomiss50=0;
+
     for r=1:length(s50response)
         if s50response(r) == 1
             gohit50=gohit50+1;
@@ -120,14 +112,6 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit50)/(gohit50+gomiss50))*100;
-    scatter(50,percorr);
-    hold on
-    
-    gohit55=0;
-    nogohit55=0;
-    gomiss55=0;
-    nogomiss55=0;
     
     for r=1:length(s55response)
         if s55response(r) == 1
@@ -141,14 +125,6 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit55)/(gohit55+gomiss55))*100;
-    scatter(55,percorr);
-    hold on
-    
-    gohit60=0;
-    nogohit60=0;
-    gomiss60=0;
-    nogomiss60=0;
     
     for r=1:length(s60response)
         if s60response(r) == 1
@@ -162,15 +138,7 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit60)/(gohit60+gomiss60))*100;
-    scatter(60,percorr);
-    hold on
-    
-    gohit65=0;
-    nogohit65=0;
-    gomiss65=0;
-    nogomiss65=0;
-    
+
     for r=1:length(s65response)
         if s65response(r) == 1
             gohit65=gohit65+1;
@@ -183,14 +151,6 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit65)/(gohit65+gomiss65))*100;
-    scatter(65,percorr);
-    hold on
-    
-    gohit70=0;
-    nogohit70=0;
-    gomiss70=0;
-    nogomiss70=0;
     
     for r=1:length(s70response)
         if s70response(r) == 1
@@ -204,14 +164,6 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit70)/(gohit70+gomiss70))*100;
-    scatter(70,percorr);
-    hold on
-    
-    gohit75=0;
-    nogohit75=0;
-    gomiss75=0;
-    nogomiss75=0;
     
     for r=1:length(s75response)
         if s75response(r) == 1
@@ -225,14 +177,6 @@ for k = 1 : length(theFiles)
         else
         end
     end
-    percorr=((gohit75)/(gohit75+gomiss75))*100;
-    scatter(75,percorr);
-    hold on
-    
-%     gohit80=0;
-%     nogohit80=0;
-%     gomiss80=0;
-%     nogomiss80=0;
     
     for r=1:length(s80response)
         if s80response(r) == 1
@@ -250,6 +194,24 @@ end
     percorr0=((nogohit0)/(nogohit0+nogomiss0))*100;
     scatter(0,percorr0)
     hold on
+    percorr50=((nogohit50)/(nogohit50+nogomiss50))*100;
+    scatter(50,percorr50)
+    hold on
+    percorr55=((nogohit55)/(nogohit55+nogomiss55))*100;
+    scatter(55,percorr55)
+    hold on
+    percorr60=((nogohit60)/(nogohit60+nogomiss60))*100;
+    scatter(60,percorr60)
+    hold on
+    percorr65=((nogohit65)/(nogohit65+nogomiss65))*100;
+    scatter(65,percorr65)
+    hold on
+    percorr70=((nogohit70)/(nogohit70+nogomiss70))*100;
+    scatter(70,percorr70)
+    hold on
+    percorr75=((nogohit75)/(nogohit75+nogomiss75))*100;
+    scatter(75,percorr75)
+    hold on
     percorr80=((gohit80)/(gohit80+gomiss80))*100;
     scatter(80,percorr80)
     hold on
@@ -257,6 +219,7 @@ end
     xticks(0:5:80)
     xlabel('Sound Intensities (dB)')
     yticks(0:10:100)
+    ylim([0 100])
     ylabel('% Correct')
     title("Combined Performance on each Sound Level")
     hold off

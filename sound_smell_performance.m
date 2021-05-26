@@ -8,7 +8,7 @@
 % python GUI to visualize the percent correct Go and NoGo Trials. Also, it
 % creates an overall performance data sheet for easier analysis.
 
-function sound_performance()
+function sound_smell_performance()
 
 %clears all previous data variables
 clear all
@@ -23,13 +23,13 @@ Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which
 %NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
 %myFolder = 'C:\VoyeurData';
 %prompts the user
-answer = questdlg('Would you like: ','Option','Combined Sound Performance Graph','Separate Sound Performance Graphs','Combined Sound Performance Graph');
+answer = questdlg('Would you like: ','Option','Combined Sound/Smell Performance Graph','Separate Sound/Smell Performance Graphs','Combined Sound/Smell Performance Graph');
 % takes user response and changes into a value for the following if
 % statement, switches the variable 'answer' from yes/no to 1/2 respectively
 switch answer
-    case 'Combined Sound Performance Graph'
-        combined_sound_performance()
-    case 'Separate Sound Performance Graphs'
-        separate_sound_performance()
+    case 'Combined Sound/Smell Performance Graph'
+        combined_sound_smell_performance()
+    case 'Separate Sound/Smell Performance Graphs'
+        separate_sound_smell_performance()
 end
 end

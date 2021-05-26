@@ -55,8 +55,8 @@ if pHit > 0
 else pHit = .5/nTarget;
 end % if pHit=0
 if pFA < 1
-    pFA = max(pFA,.5/nTarget);
-else pFA=1-.5/nTarget;
+    pFA = max(pFA,.5/nDistract);
+else pFA=1-.5/nDistract;
 end % if pFA=0
 
 %-- Convert to Z scores, no error checking
@@ -71,3 +71,14 @@ if nargout > 1
     ccrit = -.5*(zHit + zFA);
 end % if nargout
 %  Return DPRIME
+
+% % simulate observer
+% response = signal>0.4;
+% % get hits and falseAlarms
+% hits = sum(response(signalPresentAbsent==1)==1)/nPresent
+% falseAlarms = sum(response(signalPresentAbsent==0)==1)/nAbsent
+% % compute z-scores
+% zHits = icdf('norm',hits,0,1)
+% zFalseAlarms = icdf('norm',falseAlarms,0,1)
+% % compute d-prime
+% dPrime = zHits-zFalseAlarms

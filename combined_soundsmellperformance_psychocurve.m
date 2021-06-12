@@ -19,8 +19,8 @@ close all
 myFolder = 'C:\VoyeurData';
 windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
 Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
-% answer=inputdlg('Enter Sound Levels Used: ');
-% x=str2num(answer{1});
+%answer=inputdlg('Enter Sound Levels Used: ');
+%x=str2num(answer{1});
 x=[0 10 30 50 60 70 80];
 if ~isfolder(myFolder)
     errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
@@ -45,15 +45,7 @@ theFiles.datenum=datestr(theFiles.datenum,'mm/dd/yyyy');
 theFiles=sortrows(theFiles,'datenum');
 theFiles=table2struct(theFiles);
 
-for reset=1:length(theFiles)
-    file=theFiles(reset);
-    compare=datetime(theFiles(reset).datenum,'InputFormat','MM/dd/yyyy');
-    date=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
-    if compare<=date
-        call file
-        h5read
-        change
-    end
+
 %trialcounterarray=zeros(numel(x),length(theFiles));
 %percorrarray=zeros(numel(x),length(theFiles));
 %FAarray=zeros(numel(x),length(theFiles));
@@ -69,25 +61,28 @@ trialcounterarray=zeros(numel(x),length(theFiles));
 trialcounterarrayodor=zeros(numel(x),length(theFiles));
 
 for k = 1 : length(theFiles)
-    
     fullFileName = theFiles(k).name;
     %reads the file and keeps the data in this variable
     %baseFileName = theFiles(k).name;
     %fullFileName = fullfile(theFiles(k).folder, baseFileName);
+    compare=datetime(theFiles(k).datenum,'InputFormat','MM/dd/yyyy');
+    date=datetime('06/12/2021','InputFormat','MM/dd/yyyy');
     Data=h5read(fullFileName,'/Trials');
     %Determines the number of trials for this particular file
     NumTrials = length(Data.trialNumber);
+    if compare<=date
+        for set=1:NumTrials
+          Data.odorvalve(set,1)=5;
+        end
+    end
     mousenum=Data.mouse(1:3,1)';
     sessionnum=Data.session(1);
     %Our sampling frequency is 1000Hz.
     Fs = 1000;
     soundresponse=zeros(numel(x),NumTrials);
     soundresponseodor=zeros(numel(x),NumTrials);
-    
-    for Trials=1:NumTrials
-        trialcounter=zeros(numel(x),NumTrials);
-        trialcounterodor=zeros(numel(x),NumTrials);
-    end
+    trialcounter=zeros(numel(x),NumTrials);
+    trialcounterodor=zeros(numel(x),NumTrials);
     
     for Trials=1:NumTrials
         level=Data.sound_level(Trials);

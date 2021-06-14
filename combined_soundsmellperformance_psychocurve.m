@@ -10,7 +10,7 @@
 %This code assumes that the NoGo Trials are on sound level 0dB and they are
 %the first input value.
 
-function combined_soundsmellperformance_psychocurve()
+function [threshold]=combined_soundsmellperformance_psychocurve()
 
 %clears all previous data variables
 clear all
@@ -66,7 +66,7 @@ for k = 1 : length(theFiles)
     %baseFileName = theFiles(k).name;
     %fullFileName = fullfile(theFiles(k).folder, baseFileName);
     compare=datetime(theFiles(k).datenum,'InputFormat','MM/dd/yyyy');
-    date=datetime('06/12/2021','InputFormat','MM/dd/yyyy');
+    date=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
     Data=h5read(fullFileName,'/Trials');
     %Determines the number of trials for this particular file
     NumTrials = length(Data.trialNumber);
@@ -176,21 +176,21 @@ axes('position',[.1,.25,.8,.7])
 xticks(min(x):10:max(x))
 xlim([min(x) max(x)])
 %scatter(x(1),mean(FAarray))
-errorbar(x(1),mean(FAarray),steFA,'or')
-errorbar(x(1),mean(FAarrayodor),steFAodor,'ob')
-
+e1=errorbar(x(1),mean(FAarray),steFA,'or');
+hold on
+e2=errorbar(x(1),mean(FAarrayodor),steFAodor,'ob');
 hold on
 %scatter(x,meanpercorr)
+holdx=x;
 for o=1:numel(x)
     if x(o)==0
         x(o)=[];
         break
     end
 end
-errorbar(x,meanpercorr',stecorr,'or')
-errorbar(x,meanpercorrodor',stecorrodor,'ob')
-
-
+e3=errorbar(x,meanpercorr',stecorr,'or');
+hold on
+e4=errorbar(x,meanpercorrodor',stecorrodor,'ob');
 
 hold on
 xlabel('Sound Intensities (dB)')
@@ -211,39 +211,34 @@ end
 
 [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x(:),y(:));
 xf=linspace(min(x(:)),max(x(:)),100);
-plot(xf,mdl(params,xf),'r')
 hold on
-xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+"dB")%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e5=plot(xf,mdl(params,xf),'r');
+hold on
+e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+"dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 
 [odorparams,odormdl,odorthreshold,odorsensitivity,odorfmcon,odorminfun,odorpthresh] = fitLogGrid(x(:),yodor(:));
 xfodor=linspace(min(x(:)),max(x(:)),100);
-plot(xfodor,odormdl(odorparams,xfodor),'b')
 hold on
-xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+"dB")%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
-%legend("Threshold = "+convertCharsToStrings(threshold)+"dB","Odor Threshold = "+convertCharsToStrings(odorthreshold)+"dB",'location','best')
-%legend('show')
-% holdnames={'Sound Level: ','# of Trials: '};
-% idle=x1;
-% idle2=sum(trialcounterarray,'all')';
-% hold0=[0,sum(trialcounter0,'all')];
-% hold10=[10,sum(trialcounter10,'all')];
-% hold30=[30,sum(trialcounter30,'all')];
-% hold50=[50,sum(trialcounter50,'all')];
-% hold60=[60,sum(trialcounter60,'all')];
-% hold70=[70,sum(trialcounter70,'all')];
-% hold80=[80,sum(trialcounter80,'all')];
-% T=table(holdnames',idle',idle2');
-% tableCell = table2cell(T);
-% tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
-% tableChar = splitapply(@strjoin,pad(tableCell),[1;2]);
+e7=plot(xfodor,odormdl(odorparams,xfodor),'b');
+hold on
+e8=xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+"dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+eleg=legend([e6 e8],'location','best');
+
+NumberofTrials=sum(trialcounterarray,2);
+NumberofTrialsodor=sum(trialcounterarrayodor,2);
+SoundLevels = holdx';
+T = table(SoundLevels,NumberofTrials,NumberofTrialsodor);
+tableCell = table2cell(T);
+T.Properties.VariableNames=pad({'Sound Level: ','# of Trials no odor: ','# of Trials w/odor: '},'both');
+tableCell=[T.Properties.VariableNames;tableCell];
+tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
+
 % % % Add axes (not visible) & text (use a fixed width font)
-% hold on
-% axes('position',[.1,0,2,.1], 'Visible','off')
-% t=text(.225,.95,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
-% t.FontSize=7.5;
+hold on
+axes('position',[.1,0,2,.1], 'Visible','off')
+tableCell=string(tableCell');
+tableChar = splitapply(@strjoin,pad(tableCell,5),[1;2;3]);
+t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
+t.FontSize=10;
 % % 
 end
-
-
-
-

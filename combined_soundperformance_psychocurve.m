@@ -135,18 +135,18 @@ axes('position',[.1,.25,.8,.7])
 xticks(min(x):10:max(x))
 xlim([min(x) max(x)])
 %scatter(x(1),mean(FAarray))
-errorbar(x(1),mean(FAarray),steFA,'or')
+e1=errorbar(x(1),mean(FAarray),steFA,'or');
 hold on
-%scatter(x,meanpercorr)
+
+holdx=x;
 for o=1:numel(x)
     if x(o)==0
         x(o)=[];
         break
     end
 end
-errorbar(x,meanpercorr',stecorr,'or')
-
-
+e3=errorbar(x,meanpercorr',stecorr,'or');
+hold on
 
 hold on
 xlabel('Sound Intensities (dB)')
@@ -167,30 +167,27 @@ end
 
 [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x(:),y(:));
 xf=linspace(min(x(:)),max(x(:)),100);
-plot(xf,mdl(params,xf))
 hold on
-xline(threshold,'--',"Threshold = "+convertCharsToStrings(threshold)+"dB",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e5=plot(xf,mdl(params,xf),'r');
+hold on
+e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+"dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+eleg=legend(e6,'location','best');
 
+NumberofTrials=sum(trialcounterarray,2);
+SoundLevels = holdx';
+T = table(SoundLevels,NumberofTrials);
+tableCell = table2cell(T);
+T.Properties.VariableNames=pad({'Sound Level: ','# of Trials: '},'both');
+tableCell=[T.Properties.VariableNames;tableCell];
+tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
 
-% holdnames={'Sound Level: ','# of Trials: '};
-% idle=x1;
-% idle2=sum(trialcounterarray,'all')';
-% hold0=[0,sum(trialcounter0,'all')];
-% hold10=[10,sum(trialcounter10,'all')];
-% hold30=[30,sum(trialcounter30,'all')];
-% hold50=[50,sum(trialcounter50,'all')];
-% hold60=[60,sum(trialcounter60,'all')];
-% hold70=[70,sum(trialcounter70,'all')];
-% hold80=[80,sum(trialcounter80,'all')];
-% T=table(holdnames',idle',idle2');
-% tableCell = table2cell(T);
-% tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
-% tableChar = splitapply(@strjoin,pad(tableCell),[1;2]);
 % % % Add axes (not visible) & text (use a fixed width font)
-% hold on
-% axes('position',[.1,0,2,.1], 'Visible','off')
-% t=text(.225,.95,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
-% t.FontSize=7.5;
+hold on
+axes('position',[.1,0,2,.1], 'Visible','off')
+tableCell=string(tableCell');
+tableChar = splitapply(@strjoin,pad(tableCell,5),[1;2]);
+t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
+t.FontSize=10;
 % % 
 end
 

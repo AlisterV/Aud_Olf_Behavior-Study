@@ -41,10 +41,17 @@ for m=1:length(theFile)
     theFiles(structrow)=dir(theFile(m));
 end
 theFiles=struct2table(theFiles);
-theFiles.datenum=datestr(theFiles.datenum,'mm/dd/yyyy');
-theFiles=sortrows(theFiles,'datenum');
+newcolumn=cell(height(theFiles),1);
+theFiles=[theFiles table(newcolumn,'VariableName',{'Date'})];
+for g=1:height(theFiles)
+    before=extractBefore(theFiles(g,1).name,'T');
+    after=extractAfter(before,'D');
+    date=datestr(after,'mm/dd/yyyy');
+    D=cellstr(date);
+    theFiles(g,7)=D;
+end
+theFiles=sortrows(theFiles,'Date');
 theFiles=table2struct(theFiles);
-
 
 %trialcounterarray=zeros(numel(x),length(theFiles));
 %percorrarray=zeros(numel(x),length(theFiles));
@@ -65,12 +72,12 @@ for k = 1 : length(theFiles)
     %reads the file and keeps the data in this variable
     %baseFileName = theFiles(k).name;
     %fullFileName = fullfile(theFiles(k).folder, baseFileName);
-    compare=datetime(theFiles(k).datenum,'InputFormat','MM/dd/yyyy');
-    date=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
+    compare=datetime(theFiles(k).Date,'InputFormat','MM/dd/yyyy');
+    cutoff=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
     Data=h5read(fullFileName,'/Trials');
     %Determines the number of trials for this particular file
     NumTrials = length(Data.trialNumber);
-    if compare<=date
+    if compare<=cutoff
         for set=1:NumTrials
           Data.odorvalve(set,1)=5;
         end
@@ -125,27 +132,27 @@ for k = 1 : length(theFiles)
         nogomissarray(p,k)=nogomiss;
     end
     for p=1:numel(x)
-        gohit=0;
-        gomiss=0;
-        nogohit=0;
-        nogomiss=0;
+        gohitodor=0;
+        gomissodor=0;
+        nogohitodor=0;
+        nogomissodor=0;
         for w=1:NumTrials
             response=soundresponseodor(p,w);
             if response == 1
-                gohit=gohit+1;
+                gohitodor=gohitodor+1;
             elseif response == 2
-                nogohit=nogohit+1;
+                nogohitodor=nogohitodor+1;
             elseif response == 3
-                gomiss=gomiss+1;
+                gomissodor=gomissodor+1;
             elseif response == 4
-                nogomiss=nogomiss+1;
+                nogomissodor=nogomissodor+1;
             else
             end
         end
-        gohitarrayodor(p,k)=gohit;
-        gomissarrayodor(p,k)=gomiss;
-        nogohitarrayodor(p,k)=nogohit;
-        nogomissarrayodor(p,k)=nogomiss;
+        gohitarrayodor(p,k)=gohitodor;
+        gomissarrayodor(p,k)=gomissodor;
+        nogohitarrayodor(p,k)=nogohitodor;
+        nogomissarrayodor(p,k)=nogomissodor;
     end
 end
 
@@ -155,8 +162,19 @@ FAarray=nogomissarray./trialcounterarray;
 FAarrayodor=nogomissarrayodor./trialcounterarrayodor;
 FAarray=FAarray(1,:);
 FAarrayodor=FAarrayodor(1,:);
+FAarrayodor=FAarrayodor(~isnan(FAarrayodor));
 percorrarray=percorrarray(2:end,:);
 percorrarrayodor=percorrarrayodor(2:end,:);
+columncounter=0;
+[m,n]=size(percorrarrayodor);
+for v=1:n
+    if isnan(percorrarrayodor(:,v))
+        %percorrarrayodor(:,v)=[];
+        columncounter=columncounter+1;
+    end
+end
+percorrarrayodor=percorrarrayodor(~isnan(percorrarrayodor));
+percorrarrayodor=reshape(percorrarrayodor,m,n-columncounter);
 y=percorrarray';
 yodor=percorrarrayodor';
 meanpercorr=mean(percorrarray,2);
@@ -214,14 +232,22 @@ xf=linspace(min(x(:)),max(x(:)),100);
 hold on
 e5=plot(xf,mdl(params,xf),'r');
 hold on
-e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+"dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 
+[m,n]=size(yodor);
+for t=1:m
+    if t==1
+        x=x1;
+    else
+        x=[x1;x1];
+    end
+end
 [odorparams,odormdl,odorthreshold,odorsensitivity,odorfmcon,odorminfun,odorpthresh] = fitLogGrid(x(:),yodor(:));
 xfodor=linspace(min(x(:)),max(x(:)),100);
 hold on
 e7=plot(xfodor,odormdl(odorparams,xfodor),'b');
 hold on
-e8=xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+"dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e8=xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 eleg=legend([e6 e8],'location','best');
 
 NumberofTrials=sum(trialcounterarray,2);
@@ -240,5 +266,5 @@ tableCell=string(tableCell');
 tableChar = splitapply(@strjoin,pad(tableCell,5),[1;2;3]);
 t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
 t.FontSize=10;
-% % 
+
 end

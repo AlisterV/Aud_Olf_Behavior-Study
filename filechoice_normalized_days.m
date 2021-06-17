@@ -1,12 +1,11 @@
-%% Last edit made by Alister Virkler on 5/17/2021
-% This is a script that takes HDF formatted experimental data and converts
-% it into a data type that's understandable by MATLAB. From there we can export behavorial data to a .csv file
-% for later analysis, or use the following code to interpret the data in
-% MATLAB. This code also does some preliminary pre-processing of the data
-% by totaling the number of trials, correct vs. incorrect responces etc...
-% In addition, the code recreates the performance data graph from the
-% python GUI to visualize the percent correct Go and NoGo Trials. Also, it
-% creates an overall performance data sheet for easier analysis.
+%% Last edit made by Alister Virkler on 6/17/2021
+%This function gets called by dprimegraph_alloptions. This code plots
+%either all of the files for a certain mouse or allows specific files to be
+%selected. The plot contains Percent correct on Go trials, False alarm
+%rate, d prime, and total percent correct. Also, the testing day files are
+%normalized based on sound level which can be changed (since training days
+%are for sound levels 0dB and 80 dB, the testing day percentages and
+%dprimes are only calculated using the responses for 0dB and 80dB).
 
 function filechoice_normalized_days()
 
@@ -14,29 +13,35 @@ function filechoice_normalized_days()
 clear all
 %closes all previous figures
 close all
-
-windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
-Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
-
-%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
-%FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
-%NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
+%Sets the default folder that Matlab will look into
 myFolder = 'C:\VoyeurData';
+
 %prompts the user
 answer = questdlg('Would you like: ','Option 3','All Files for mouse','Choose files','All Files for mouse');
-% takes user response and changes into a value for the following if
-% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+%initializes a string array for the performance data
 performancearray=strings;
+
+%makes a case for each possible answer from user
 switch answer
+    %if the user selects 'All Files for Mouse' then matlab will ask the
+    %user to input the Mouse# and then procede to select all files with
+    %that mouse#
     case 'All Files for mouse'
+        %prompts user to inpput mouse#
         mousenum=input('Enter Mouse Number: ', 's');
+        %creates an extension that contains the mouse number
         mousexten=append('*',mousenum,'*.h5');
-        filePattern = fullfile(myFolder,mousexten); % Change to whatever pattern you need.
+        %creates the file pattern from the folder and extension
+        filePattern = fullfile(myFolder,mousexten);
+        %goes to the directory and gets all of the files that match the
+        %file pattern
         theFiles = dir(filePattern);
+        %initializes tiles within a figure
         ax1=nexttile;
         ax2=nexttile;
         ax3=nexttile;
         ax4=nexttile;
+        %
         theFiles=struct2table(theFiles);
         theFiles.datenum=datestr(theFiles.datenum,'mm/dd/yyyy');
         theFiles=sortrows(theFiles,'datenum');

@@ -1,6 +1,6 @@
 %% Last edit made by Alister Virkler 6/17/2021
 %This code calls two others to determine whether the user wants to separate
-%the data for d prime and % correct graphs by session or by day
+%the data for d prime and percent correct graphs by session or by day
 
 function dprimegraph_alloptions()
 %propmts the user if they would like to separate data by day or session

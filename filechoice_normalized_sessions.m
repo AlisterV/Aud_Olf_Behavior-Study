@@ -1,244 +1,453 @@
-%% Last edit made by Alister Virkler on 5/17/2021
-% This is a script that takes HDF formatted experimental data and converts
-% it into a data type that's understandable by MATLAB. From there we can export behavorial data to a .csv file
-% for later analysis, or use the following code to interpret the data in
-% MATLAB. This code also does some preliminary pre-processing of the data
-% by totaling the number of trials, correct vs. incorrect responces etc...
-% In addition, the code recreates the performance data graph from the
-% python GUI to visualize the percent correct Go and NoGo Trials. Also, it
-% creates an overall performance data sheet for easier analysis.
+%% Last edit made by Alister Virkler on 6/17/2021
+%This function gets called by dprimegraph_alloptions. This code plots
+%either all of the files for a certain mouse or allows specific files to be
+%selected. The plot contains Percent correct on Go trials, False alarm
+%rate, d prime, and total percent correct. Also, the testing day files are
+%normalized based on sound level which can be changed (since training days
+%are for sound levels 0dB and 80 dB, the testing day percentages and
+%dprimes are only calculated using the responses for 0dB and 80dB). 
 
 function filechoice_normalized_sessions()
 
+%% Prompts USer
 %clears all previous data variables
 clear all
 %closes all previous figures
 close all
-
-windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
-Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
-
-%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
-%FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
-%NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
+%Sets the default folder that Matlab will look into
 myFolder = 'C:\VoyeurData';
+
 %prompts the user
 answer = questdlg('Would you like: ','Option 3','All Files for mouse','Choose files','All Files for mouse');
-% takes user response and changes into a value for the following if
-% statement, switches the variable 'answer' from yes/no to 1/2 respectively
+%initializes a string array for the performance data
 performancearray=strings;
+
+%makes a case for each possible answer from user
 switch answer
+    %% Case 1: All Files
+    %if the user selects 'All Files for Mouse' then matlab will ask the
+    %user to input the Mouse# and then procede to select all files with
+    %that mouse#
     case 'All Files for mouse'
+        %prompts user to inpput mouse#
         mousenum=input('Enter Mouse Number: ', 's');
+        %creates an extension that contains the mouse number
         mousexten=append('*',mousenum,'*.h5');
-        filePattern = fullfile(myFolder,mousexten); % Change to whatever pattern you need.
+        %creates the file pattern from the folder and extension
+        filePattern = fullfile(myFolder,mousexten);
+        %goes to the directory and gets all of the files that match the
+        %file pattern
         theFiles = dir(filePattern);
+        %turns the Files from a structure into a table
         theFiles=struct2table(theFiles);
-        theFiles.datenum=datestr(theFiles.datenum,'mm/dd/yyyy');
-        theFiles=sortrows(theFiles,'datenum');
+        %creates a column cell array vector with the height of the files
+        newcolumn=cell(height(theFiles),1);
+        %joines the files with the new column and creates that column with variable
+        %name 'Date'
+        theFiles=[theFiles table(newcolumn,'VariableName',{'Date'})];
+        %loops through each file and takes out the date information from the file
+        %name string. Turns this string into a date and saves it into the table of
+        %files
+        for g=1:height(theFiles)
+            %takes out everything before 'T' in the name
+            before=extractBefore(theFiles(g,1).name,'T');
+            %takes out everything after 'D' in the name
+            after=extractAfter(before,'D');
+            %turns the string into a date
+            date=datestr(after,'mm/dd/yyyy');
+            %turns the date into a cell
+            D=cellstr(date);
+            %adds the file date into the table
+            theFiles(g,7)=D;
+        end
+        %sorts the rows of the table by their dates in descending order
+        theFiles=sortrows(theFiles,'Date');
+        %turns the file table back into the structure
         theFiles=table2struct(theFiles);
-        %theFiles=allFiles.name(:,:);
-        %initializes a counter to keep track of all the trials continually through
-        %every file
-        alltrialcounter=zeros(1000,1000);
-        %initializes a counter for the Go Hits
-        GoHitCounter = 0;
-        %initializes a counter for the NoGo Hits
-        NoGoHitCounter = 0;
-        %initializes a counter for the Go Misses
-        GoMissCounter = 0;
-        %initializes a counter for the NoGo Misses
-        NoGoMissCounter = 0;
+        %initializes the plots
         ax1=nexttile;
         ax2=nexttile;
         ax3=nexttile;
         ax4=nexttile;
+        
+        %% Loops through every File and organizes data by testing type and then plots it
+        
+        %loops through every file
         for k = 1 :length(theFiles)
             %selects the kth file
-            %fullFileName = theFiles.name(k);
-            %reads the file and keeps the data in this variable
             fullFileName = theFiles(k).name;
-            %fullFileName = fullfile(theFiles(k).folder, baseFileName);
+            %reads the file into matlab
             Data=h5read(fullFileName,'/Trials');
             %Determines the number of trials for this particular file
             NumTrials = length(Data.trialNumber);
-            %Our sampling frequency is 1000Hz.
-            Fs = 1000;
             %initializes a counter for the Go Hits
-            GoHitCounterarray = 0;
+            GoHitCounter = 0;
             %initializes a counter for the NoGo Hits
-            NoGoHitCounterarray = 0;
+            NoGoHitCounter = 0;
             %initializes a counter for the Go Misses
-            GoMissCounterarray = 0;
+            GoMissCounter = 0;
             %initializes a counter for the NoGo Misses
-            NoGoMissCounterarray = 0;
+            NoGoMissCounter = 0;
+            %initializes a trial counter for test files
             trial080counter=0;
-            if contains(fullFileName,'t')==1
+            
+            %if the file contains that it is a sound only test session
+            %the code continues here
+            if contains(fullFileName,'t_')==1
+                %loops through all the trials in this sound only test
+                %file
                 for Trials = 1:NumTrials
                     % Get the animal's response for this trial.
                     mouseResponse = Data.response(Trials);
-                    %keeps track of the number of trials through all files
-                    alltrialcounter(k,Trials)=1;
+                    %finds the session number for this file
                     sessionnum=Data.session(1);
+                    %gets the sound level for this trial
                     soundlevel=Data.sound_level(Trials);
+                    
+                    %This is what normalizes the test days
+                    %if the sound level is either 0dB or 80dB, then the
+                    %code will continue to read the mouse response,
+                    %otherwise, the code will ignore this trial
                     if soundlevel==0 || soundlevel==80
-                        %% Translates the behavioral response into words for array
+                        %Translates the behavioral response into words for array
                         % if the mouse response is 1 then trial was a Go Hit
                         if mouseResponse == 1
-                            %adds one to the array counter for Go Hit
-                            GoHitCounterarray = GoHitCounterarray +1;
                             %adds one to the counter for Go Hit
                             GoHitCounter = GoHitCounter + 1;
                             % if the mouse response is 2 then trial was a NoGo Hit
                         elseif mouseResponse == 2
-                            %adds one to the array counter for NoGoHit
-                            NoGoHitCounterarray = NoGoHitCounterarray +1;
                             %adds one to the counter for NoGo Hit
                             NoGoHitCounter = NoGoHitCounter + 1;
-                            
                             % if the mouse response is 3 then trial was a Go Miss
                         elseif mouseResponse == 3
-                            %adds one to the array counter for Go Miss
-                            GoMissCounterarray = GoMissCounterarray + 1;
                             %adds one to the counter for Go Miss
                             GoMissCounter = GoMissCounter + 1;
-                            
                             % if the mouse response is 4 then trial was a NoGo Miss
                         elseif mouseResponse == 4
                             %adds one to the counter for NoGo Miss
-                            NoGoMissCounterarray = NoGoMissCounterarray + 1;
-                            %adds one to the counter for NoGo Miss
                             NoGoMissCounter = NoGoMissCounter + 1;
                         end
+                        %makes a trial counter specifically for test
+                        %days
                         trial080counter=trial080counter+1;
                     end
                 end
-                pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray);
+                
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter
                 scatter(ax1,sessionnum,pHit,'filled')
+                %labels the x axis
                 xlabel(ax1,'Session #')
+                %labels the y axis
                 ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax1,0:.2:1)
+                %sets the y limits
                 ylim(ax1,[0 1])
+                %creates a title
                 title(ax1,'Go Hit Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                pFA=NoGoMissCounterarray/(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
                 scatter(ax2,sessionnum,pFA,'filled')
+                %labels the x axis
                 xlabel(ax2,'Session #')
+                %labels the y axis
                 ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax2,0:.2:1)
+                %sets the y limits
                 ylim(ax2,[0 1])
+                %creates a title
                 title(ax2,'False Alarm Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
-                nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
                 scatter(ax3,sessionnum,dpri,'filled')
+                %labels the x axis
                 xlabel(ax3,'Session #')
+                %labels the y axis
                 ylabel(ax3,"d' value")
+                %creates a title
                 title(ax3,"d' over sessions")
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                percorr=(GoHitCounterarray+NoGoHitCounterarray)/(trial080counter);
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/(trial080counter);
+                %creates a scatter
                 scatter(ax4,sessionnum,percorr,'filled')
+                %labels the x axis
                 xlabel(ax4,'Session #')
+                %labels the y axis
                 ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax4,0:0.2:1)
+                %sets the y limits
                 ylim(ax4,[0 1])
+                %creates a title
                 title(ax4,'Total Percent Correct')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
+                %gets the mouse id number
                 mousenum=Data.mouse(1:3,1)';
-                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Days")
-            else
-                %% Starts a loop for the specified kth file and loops through each trial
+                %creates an overall title for all graphs
+                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
+            
+            %if the file contains that it is a sound and odor test session
+            %the code continues here
+            elseif contains(fullFileName,'to_')==1
+                %loops through all the trials in this sound and odor test
+                %file
                 for Trials = 1:NumTrials
                     % Get the animal's response for this trial.
                     mouseResponse = Data.response(Trials);
-                    %keeps track of the number of trials through all files
-                    alltrialcounter(k,Trials)=1;
+                    %finds the session number
                     sessionnum=Data.session(1);
+                    %gets the currectn sound level for this trial
+                    soundlevel=Data.sound_level(Trials);
                     
-                    %% Translates the behavioral response into words for array
+                    %This is what normalizes the test days
+                    %if the sound level is either 0dB or 80dB, then the
+                    %code will continue to read the mouse response,
+                    %otherwise, the code will ignore this trial
+                    if soundlevel==0 || soundlevel==80
+                        %Translates the behavioral response into words for array
+                        % if the mouse response is 1 then trial was a Go Hit
+                        if mouseResponse == 1
+                            %adds one to the array counter for Go Hit
+                            GoHitCounter = GoHitCounter +1;
+                            % if the mouse response is 2 then trial was a NoGo Hit
+                        elseif mouseResponse == 2
+                            %adds one to the array counter for NoGoHit
+                            NoGoHitCounter = NoGoHitCounter +1;
+                            % if the mouse response is 3 then trial was a Go Miss
+                        elseif mouseResponse == 3
+                            %adds one to the array counter for Go Miss
+                            GoMissCounter = GoMissCounter + 1;
+                            % if the mouse response is 4 then trial was a NoGo Miss
+                        elseif mouseResponse == 4
+                            %adds one to the counter for NoGo Miss
+                            NoGoMissCounter = NoGoMissCounter + 1;
+                        end
+                        %creates a test counter specifically for the
+                        %test day
+                        trial080counter=trial080counter+1;
+                    end
+                end
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter('d' makes the marker a diamond to
+                %specify this test type)
+                scatter(ax1,sessionnum,pHit,'filled','d')
+                %labels the x axis
+                xlabel(ax1,'Session #')
+                %labels the y axis
+                ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax1,0:.2:1)
+                %sets the y limits
+                ylim(ax1,[0 1])
+                %creates a title
+                title(ax1,'Go Hit Percentage')
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
+                scatter(ax2,sessionnum,pFA,'filled','d')
+                %labels the x axis
+                xlabel(ax2,'Session #')
+                %labels the y axis
+                ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax2,0:.2:1)
+                %sets the y limits
+                ylim(ax2,[0 1])
+                %creates a title
+                title(ax2,'False Alarm Percentage')
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
+                [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
+                scatter(ax3,sessionnum,dpri,'filled','d')
+                %labels the x axis
+                xlabel(ax3,'Session #')
+                %labels the y axis
+                ylabel(ax3,"d' value")
+                %creates a title
+                title(ax3,"d' over sessions")
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/(trial080counter);
+                %creates a scatter
+                scatter(ax4,sessionnum,percorr,'filled','d')
+                %labels the x axis
+                xlabel(ax4,'Session #')
+                %labels the y axis
+                ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax4,0:0.2:1)
+                %sets the y limits
+                ylim(ax4,[0 1])
+                %creates a title
+                title(ax4,'Total Percent Correct')
+                %holds onto all plots
+                hold([ax1,ax2,ax3,ax4],'on')
+                %gets the mouse id number
+                mousenum=Data.mouse(1:3,1)';
+                %creates an overall title for all plots
+                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
+            
+            %if the file is just a training day (no 't_' or 'to_') then
+            %the code contunies here
+            else
+                %loops through all the trials in this training file
+                for Trials = 1:NumTrials
+                    % Get the animal's response for this trial.
+                    mouseResponse = Data.response(Trials);
+                    %gets the session number
+                    sessionnum=Data.session(1);
+                    %Translates the behavioral response into words for array
                     % if the mouse response is 1 then trial was a Go Hit
                     if mouseResponse == 1
                         %adds one to the array counter for Go Hit
-                        GoHitCounterarray = GoHitCounterarray +1;
-                        %adds one to the counter for Go Hit
-                        GoHitCounter = GoHitCounter + 1;
+                        GoHitCounter = GoHitCounter +1;
                         % if the mouse response is 2 then trial was a NoGo Hit
                     elseif mouseResponse == 2
                         %adds one to the array counter for NoGoHit
-                        NoGoHitCounterarray = NoGoHitCounterarray +1;
-                        %adds one to the counter for NoGo Hit
-                        NoGoHitCounter = NoGoHitCounter + 1;
-                        
+                        NoGoHitCounter = NoGoHitCounter +1;
                         % if the mouse response is 3 then trial was a Go Miss
                     elseif mouseResponse == 3
                         %adds one to the array counter for Go Miss
-                        GoMissCounterarray = GoMissCounterarray + 1;
-                        %adds one to the counter for Go Miss
                         GoMissCounter = GoMissCounter + 1;
-                        
                         % if the mouse response is 4 then trial was a NoGo Miss
                     elseif mouseResponse == 4
-                        %adds one to the counter for NoGo Miss
-                        NoGoMissCounterarray = NoGoMissCounterarray + 1;
                         %adds one to the counter for NoGo Miss
                         NoGoMissCounter = NoGoMissCounter + 1;
                     end
                 end
-                pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray);
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter
                 scatter(ax1,sessionnum,pHit)
+                %labels the x axis
                 xlabel(ax1,'Session #')
+                %labels the y axis
                 ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax1,0:.2:1)
+                %sets the y limits
                 ylim(ax1,[0 1])
+                %creates a title
                 title(ax1,'Go Hit Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                pFA=NoGoMissCounterarray/(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
                 scatter(ax2,sessionnum,pFA)
+                %labels the x axis
                 xlabel(ax2,'Session #')
+                %labels the y axis
                 ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax2,0:.2:1)
+                %sets the y limits
                 ylim(ax2,[0 1])
+                %creates a title
                 title(ax2,'False Alarm Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
-                nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
                 scatter(ax3,sessionnum,dpri)
+                %labels the x axis
                 xlabel(ax3,'Session #')
+                %labels the y axis
                 ylabel(ax3,"d'")
+                %creates a title
                 title(ax3,"d' over sessions")
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                percorr=(GoHitCounterarray+NoGoHitCounterarray)/(NumTrials);
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/NumTrials;
+                %creates a scatter
                 scatter(ax4,sessionnum,percorr)
+                %labels the x axis
                 xlabel(ax4,'Session #')
+                %labels the y axis
                 ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax4,0:0.2:1)
+                %sets the y limits
                 ylim(ax4,[0 1])
+                %creates a title
                 title(ax4,'Total Percent Correct')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Days")
+                %creates an overall title for all graphs
+                sgtitle("Performance of Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
             end
         end
-        sessionnum=Data.session(1);
+        
+        %% Adds data to the performance report
+
+        %gets the session number
+        sessionnum=Data.session(1);  
+        %adds mouse number
         performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
+        %adds session number
         performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
+        %adds pHit
         performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
+        %adds pFA
         performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
+        %adds d prime
         performancearray(5,k)="d'="+convertCharsToStrings(dpri);
+        %adds entire percent correct
         performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
-        %             if pHit-pFA >= .5 && dpri>=2
-        %                 performancearray(6,k)='PASSED';
-        %             elseif pHit-pFA <= .5 || dpri<=2
-        %                 performancearray(6,k)='FAIL';
-        %             end
+        
+        %creates a criteria for the mouse to see if they performed well
+        %enough for that session
+        %if the mouse's dprime is greater than 2 and its entire percent
+        %correct is above 80
         if dpri>=2 && percorr>=.8
+            %mark that the mouse passed the session
             performancearray(7,k)='PASSED';
+        %if either case is not met
         elseif dpri<2 || percorr<.8
+            %mark that the mouse failed the session
             performancearray(7,k)='FAILED';
         end
+        %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
+   
+    %% Case 2: Choose Files
+    %if the user selects 'Choose Files for Mouse' then matlab will ask the
+    %user to select the desired files
     case 'Choose files'
+        %if the user's folder does not exist matlab makes the user choose a
+        %folder
         if ~isfolder(myFolder)
             errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
             uiwait(warndlg(errorMessage));
@@ -252,216 +461,420 @@ switch answer
         filePattern = fullfile(myFolder, '*.h5');
         %opens user access to the desired folder
         theFile =string(uigetfile(filePattern,'Multiselect','on'));
-        %initializes a counter to keep track of all the trials continually through
-        %every file
+        %creates a counter
         structrow=0;
+        %adds a row to the directory of the files selected
         for x=1:length(theFile)
             structrow=structrow+1;
             theFiles(structrow)=dir(theFile(x));
         end
-        theFiles=struct2table(theFiles);
-        theFiles.datenum=datestr(theFiles.datenum,'mm/dd/yyyy');
-        theFiles=sortrows(theFiles,'datenum');
-        theFiles=table2struct(theFiles);
-        %theFiles=allFiles.name(:,:);
-        %initializes a counter to keep track of all the trials continually through
-        %every file
-        alltrialcounter=zeros(1000,1000);
-        %initializes a counter for the Go Hits
-        GoHitCounter = 0;
-        %initializes a counter for the NoGo Hits
-        NoGoHitCounter = 0;
-        %initializes a counter for the Go Misses
-        GoMissCounter = 0;
-        %initializes a counter for the NoGo Misses
-        NoGoMissCounter = 0;
+        %initializes the plots
         ax1=nexttile;
         ax2=nexttile;
         ax3=nexttile;
         ax4=nexttile;
-        for k = 1 : length(theFiles)
+        
+        %% Organize the Files
+        %turns the Files from a structure into a table
+        theFiles=struct2table(theFiles);
+        %creates a column cell array vector with the height of the files
+        newcolumn=cell(height(theFiles),1);
+        %joines the files with the new column and creates that column with variable
+        %name 'Date'
+        theFiles=[theFiles table(newcolumn,'VariableName',{'Date'})];
+        %loops through each file and takes out the date information from the file
+        %name string. Turns this string into a date and saves it into the table of
+        %files
+        for g=1:height(theFiles)
+            %takes out everything before 'T' in the name
+            before=extractBefore(theFiles(g,1).name,'T');
+            %takes out everything after 'D' in the name
+            after=extractAfter(before,'D');
+            %turns the string into a date
+            date=datestr(after,'mm/dd/yyyy');
+            %turns the date into a cell
+            D=cellstr(date);
+            %adds the file date into the table
+            theFiles(g,7)=D;
+        end
+        %sorts the rows of the table by their dates in descending order
+        theFiles=sortrows(theFiles,'Date');
+        %turns the file table back into the structure
+        theFiles=table2struct(theFiles);
+
+        %% Loops through every File and organizes data by testing type and then plots it
+        
+        %loops through every file
+        for k = 1 :length(theFiles)
             %selects the kth file
-            %fullFileName = theFiles.name(k);
-            %reads the file and keeps the data in this variable
             fullFileName = theFiles(k).name;
-            %fullFileName = fullfile(theFiles(k).folder, baseFileName);
+            %reads the file into matlab
             Data=h5read(fullFileName,'/Trials');
             %Determines the number of trials for this particular file
             NumTrials = length(Data.trialNumber);
-            %Our sampling frequency is 1000Hz.
-            Fs = 1000;
             %initializes a counter for the Go Hits
-            GoHitCounterarray = 0;
+            GoHitCounter = 0;
             %initializes a counter for the NoGo Hits
-            NoGoHitCounterarray = 0;
+            NoGoHitCounter = 0;
             %initializes a counter for the Go Misses
-            GoMissCounterarray = 0;
+            GoMissCounter = 0;
             %initializes a counter for the NoGo Misses
-            NoGoMissCounterarray = 0;
+            NoGoMissCounter = 0;
+            %initializes a trial counter for test files
             trial080counter=0;
-            if contains(fullFileName,'t')==1
+            
+            %if the file contains that it is a sound only test session
+            %the code continues here
+            if contains(fullFileName,'t_')==1
+                %loops through all the trials in this sound only test
+                %file
                 for Trials = 1:NumTrials
                     % Get the animal's response for this trial.
                     mouseResponse = Data.response(Trials);
-                    %keeps track of the number of trials through all files
-                    alltrialcounter(k,Trials)=1;
+                    %finds the session number for this file
                     sessionnum=Data.session(1);
+                    %gets the sound level for this trial
                     soundlevel=Data.sound_level(Trials);
+                    
+                    %This is what normalizes the test days
+                    %if the sound level is either 0dB or 80dB, then the
+                    %code will continue to read the mouse response,
+                    %otherwise, the code will ignore this trial
                     if soundlevel==0 || soundlevel==80
-                        %% Translates the behavioral response into words for array
+                        %Translates the behavioral response into words for array
                         % if the mouse response is 1 then trial was a Go Hit
                         if mouseResponse == 1
-                            %adds one to the array counter for Go Hit
-                            GoHitCounterarray = GoHitCounterarray +1;
                             %adds one to the counter for Go Hit
                             GoHitCounter = GoHitCounter + 1;
                             % if the mouse response is 2 then trial was a NoGo Hit
                         elseif mouseResponse == 2
-                            %adds one to the array counter for NoGoHit
-                            NoGoHitCounterarray = NoGoHitCounterarray +1;
                             %adds one to the counter for NoGo Hit
                             NoGoHitCounter = NoGoHitCounter + 1;
-                            
                             % if the mouse response is 3 then trial was a Go Miss
                         elseif mouseResponse == 3
-                            %adds one to the array counter for Go Miss
-                            GoMissCounterarray = GoMissCounterarray + 1;
                             %adds one to the counter for Go Miss
                             GoMissCounter = GoMissCounter + 1;
-                            
                             % if the mouse response is 4 then trial was a NoGo Miss
                         elseif mouseResponse == 4
                             %adds one to the counter for NoGo Miss
-                            NoGoMissCounterarray = NoGoMissCounterarray + 1;
-                            %adds one to the counter for NoGo Miss
                             NoGoMissCounter = NoGoMissCounter + 1;
                         end
+                        %makes a trial counter specifically for test
+                        %days
                         trial080counter=trial080counter+1;
                     end
                 end
-                pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray);
+                
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter
                 scatter(ax1,sessionnum,pHit,'filled')
+                %labels the x axis
                 xlabel(ax1,'Session #')
+                %labels the y axis
                 ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax1,0:.2:1)
+                %sets the y limits
                 ylim(ax1,[0 1])
+                %creates a title
                 title(ax1,'Go Hit Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                pFA=NoGoMissCounterarray/(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
                 scatter(ax2,sessionnum,pFA,'filled')
+                %labels the x axis
                 xlabel(ax2,'Session #')
+                %labels the y axis
                 ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax2,0:.2:1)
+                %sets the y limits
                 ylim(ax2,[0 1])
+                %creates a title
                 title(ax2,'False Alarm Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
-                nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
                 scatter(ax3,sessionnum,dpri,'filled')
+                %labels the x axis
                 xlabel(ax3,'Session #')
+                %labels the y axis
                 ylabel(ax3,"d' value")
+                %creates a title
                 title(ax3,"d' over sessions")
+                %holds onto all plots
                 hold([ax1,ax2,ax3],'on')
-                percorr=(GoHitCounterarray+NoGoHitCounterarray)/(trial080counter);
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/(trial080counter);
+                %creates a scatter
                 scatter(ax4,sessionnum,percorr,'filled')
+                %labels the x axis
                 xlabel(ax4,'Session #')
+                %labels the y axis
                 ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax4,0:0.2:1)
+                %sets the y limits
                 ylim(ax4,[0 1])
+                %creates a title
                 title(ax4,'Total Percent Correct')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
+                %gets the mouse id number
                 mousenum=Data.mouse(1:3,1)';
-                sgtitle("Performance with Normalized Test Days")
-            else
-                %% Starts a loop for the specified kth file and loops through each trial
+                %creates an overall title for all graphs
+                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
+            
+            %if the file contains that it is a sound and odor test session
+            %the code continues here
+            elseif contains(fullFileName,'to_')==1
+                %loops through all the trials in this sound and odor test
+                %file
                 for Trials = 1:NumTrials
                     % Get the animal's response for this trial.
                     mouseResponse = Data.response(Trials);
-                    %keeps track of the number of trials through all files
-                    alltrialcounter(k,Trials)=1;
+                    %finds the session number
                     sessionnum=Data.session(1);
+                    %gets the currectn sound level for this trial
+                    soundlevel=Data.sound_level(Trials);
                     
-                    %% Translates the behavioral response into words for array
+                    %This is what normalizes the test days
+                    %if the sound level is either 0dB or 80dB, then the
+                    %code will continue to read the mouse response,
+                    %otherwise, the code will ignore this trial
+                    if soundlevel==0 || soundlevel==80
+                        %Translates the behavioral response into words for array
+                        % if the mouse response is 1 then trial was a Go Hit
+                        if mouseResponse == 1
+                            %adds one to the array counter for Go Hit
+                            GoHitCounter = GoHitCounter +1;
+                            % if the mouse response is 2 then trial was a NoGo Hit
+                        elseif mouseResponse == 2
+                            %adds one to the array counter for NoGoHit
+                            NoGoHitCounter = NoGoHitCounter +1;
+                            % if the mouse response is 3 then trial was a Go Miss
+                        elseif mouseResponse == 3
+                            %adds one to the array counter for Go Miss
+                            GoMissCounter = GoMissCounter + 1;
+                            % if the mouse response is 4 then trial was a NoGo Miss
+                        elseif mouseResponse == 4
+                            %adds one to the counter for NoGo Miss
+                            NoGoMissCounter = NoGoMissCounter + 1;
+                        end
+                        %creates a test counter specifically for the
+                        %test day
+                        trial080counter=trial080counter+1;
+                    end
+                end
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter('d' makes the marker a diamond to
+                %specify this test type)
+                scatter(ax1,sessionnum,pHit,'filled','d')
+                %labels the x axis
+                xlabel(ax1,'Session #')
+                %labels the y axis
+                ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax1,0:.2:1)
+                %sets the y limits
+                ylim(ax1,[0 1])
+                %creates a title
+                title(ax1,'Go Hit Percentage')
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
+                scatter(ax2,sessionnum,pFA,'filled','d')
+                %labels the x axis
+                xlabel(ax2,'Session #')
+                %labels the y axis
+                ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax2,0:.2:1)
+                %sets the y limits
+                ylim(ax2,[0 1])
+                %creates a title
+                title(ax2,'False Alarm Percentage')
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
+                [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
+                scatter(ax3,sessionnum,dpri,'filled','d')
+                %labels the x axis
+                xlabel(ax3,'Session #')
+                %labels the y axis
+                ylabel(ax3,"d' value")
+                %creates a title
+                title(ax3,"d' over sessions")
+                %holds onto all plots
+                hold([ax1,ax2,ax3],'on')
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/(trial080counter);
+                %creates a scatter
+                scatter(ax4,sessionnum,percorr,'filled','d')
+                %labels the x axis
+                xlabel(ax4,'Session #')
+                %labels the y axis
+                ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
+                yticks(ax4,0:0.2:1)
+                %sets the y limits
+                ylim(ax4,[0 1])
+                %creates a title
+                title(ax4,'Total Percent Correct')
+                %holds onto all plots
+                hold([ax1,ax2,ax3,ax4],'on')
+                %gets the mouse id number
+                mousenum=Data.mouse(1:3,1)';
+                %creates an overall title for all plots
+                sgtitle("Performance for Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
+            
+            %if the file is just a training day (no 't_' or 'to_') then
+            %the code contunies here
+            else
+                %loops through all the trials in this training file
+                for Trials = 1:NumTrials
+                    % Get the animal's response for this trial.
+                    mouseResponse = Data.response(Trials);
+                    %gets the session number
+                    sessionnum=Data.session(1);
+                    %Translates the behavioral response into words for array
                     % if the mouse response is 1 then trial was a Go Hit
                     if mouseResponse == 1
                         %adds one to the array counter for Go Hit
-                        GoHitCounterarray = GoHitCounterarray +1;
-                        %adds one to the counter for Go Hit
-                        GoHitCounter = GoHitCounter + 1;
+                        GoHitCounter = GoHitCounter +1;
                         % if the mouse response is 2 then trial was a NoGo Hit
                     elseif mouseResponse == 2
                         %adds one to the array counter for NoGoHit
-                        NoGoHitCounterarray = NoGoHitCounterarray +1;
-                        %adds one to the counter for NoGo Hit
-                        NoGoHitCounter = NoGoHitCounter + 1;
-                        
+                        NoGoHitCounter = NoGoHitCounter +1;
                         % if the mouse response is 3 then trial was a Go Miss
                     elseif mouseResponse == 3
                         %adds one to the array counter for Go Miss
-                        GoMissCounterarray = GoMissCounterarray + 1;
-                        %adds one to the counter for Go Miss
                         GoMissCounter = GoMissCounter + 1;
-                        
                         % if the mouse response is 4 then trial was a NoGo Miss
                     elseif mouseResponse == 4
-                        %adds one to the counter for NoGo Miss
-                        NoGoMissCounterarray = NoGoMissCounterarray + 1;
                         %adds one to the counter for NoGo Miss
                         NoGoMissCounter = NoGoMissCounter + 1;
                     end
                 end
-                pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray);
+                %calculates the percent hit rate
+                pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+                %creates a scatter
                 scatter(ax1,sessionnum,pHit)
+                %labels the x axis
                 xlabel(ax1,'Session #')
+                %labels the y axis
                 ylabel(ax1,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax1,0:.2:1)
+                %sets the y limits
                 ylim(ax1,[0 1])
+                %creates a title
                 title(ax1,'Go Hit Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                pFA=NoGoMissCounterarray/(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the percent false alarm rate
+                pFA=NoGoMissCounter/(NoGoHitCounter+NoGoMissCounter);
+                %creates a scatter
                 scatter(ax2,sessionnum,pFA)
+                %labels the x axis
                 xlabel(ax2,'Session #')
+                %labels the y axis
                 ylabel(ax2,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax2,0:.2:1)
+                %sets the y limits
                 ylim(ax2,[0 1])
+                %creates a title
                 title(ax2,'False Alarm Percentage')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                nTarget=(GoHitCounterarray+GoMissCounterarray); %not sure if this means the number of trials in to tla of that it is based on
-                nDistract=(NoGoHitCounterarray+NoGoMissCounterarray);
+                %calculates the target number of pHit rate
+                nTarget=(GoHitCounter+GoMissCounter);
+                %calculates the distraction number of pFA
+                nDistract=(NoGoHitCounter+NoGoMissCounter);
+                %calls the dprime function to calculate it 
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
+                %creates a scatter
                 scatter(ax3,sessionnum,dpri)
+                %labels the x axis
                 xlabel(ax3,'Session #')
+                %labels the y axis
                 ylabel(ax3,"d'")
-                title(ax3,"d' over sessions")
+                %creates a title
+                title(ax3,"d' over Sessions")
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                percorr=(GoHitCounterarray+NoGoHitCounterarray)/(NumTrials);
+                %calculates the entire percent correct
+                percorr=(GoHitCounter+NoGoHitCounter)/NumTrials;
+                %creates a scatter
                 scatter(ax4,sessionnum,percorr)
+                %labels the x axis
                 xlabel(ax4,'Session #')
+                %labels the y axis
                 ylabel(ax4,'Percentage')
+                %makes the y tick marks from zeros to one by 0.2
                 yticks(ax4,0:0.2:1)
+                %sets the y limits
                 ylim(ax4,[0 1])
+                %creates a title
                 title(ax4,'Total Percent Correct')
+                %holds onto all plots
                 hold([ax1,ax2,ax3,ax4],'on')
-                sgtitle("Performance with Normalized Test Days")
+                %gets the mouse id number
+                mousenum=Data.mouse(1:3,1)';
+                %creates an overall title for all graphs
+                sgtitle("Performance of Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
             end
         end
-        sessionnum=Data.session(1);
+        
+        %% Adds data to the performance report
+
+        %gets the session number
+        sessionnum=Data.session(1);  
+        %adds mouse number
         performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
+        %adds session number
         performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
+        %adds pHit
         performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
+        %adds pFA
         performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
+        %adds d prime
         performancearray(5,k)="d'="+convertCharsToStrings(dpri);
+        %adds entire percent correct
         performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
-        %             if pHit-pFA >= .5 && dpri>=2
-        %                 performancearray(6,k)='PASSED';
-        %             elseif pHit-pFA <= .5 || dpri<=2
-        %                 performancearray(6,k)='FAIL';
-        %             end
+        
+        %creates a criteria for the mouse to see if they performed well
+        %enough for that session
+        %if the mouse's dprime is greater than 2 and its entire percent
+        %correct is above 80
         if dpri>=2 && percorr>=.8
+            %mark that the mouse passed the session
             performancearray(7,k)='PASSED';
+        %if either case is not met
         elseif dpri<2 || percorr<.8
+            %mark that the mouse failed the session
             performancearray(7,k)='FAILED';
         end
+        %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
+end
+
 end

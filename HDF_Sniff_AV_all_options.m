@@ -1,30 +1,20 @@
 %% Last edit made by Alister Virkler on 5/17/2021
-% This is a script that takes HDF formatted experimental data and converts
-% it into a data type that's understandable by MATLAB. From there we can export behavorial data to a .csv file
-% for later analysis, or use the following code to interpret the data in
-% MATLAB. This code also does some preliminary pre-processing of the data
-% by totaling the number of trials, correct vs. incorrect responces etc...
-% In addition, the code recreates the performance data graph from the
-% python GUI to visualize the percent correct Go and NoGo Trials. Also, it
-% creates an overall performance data sheet for easier analysis.
-
+% This code takes in the behavioral file data for the Go/NoGo task.
+%This file has four opttions:
+    %'Combined Performance Graph': takes all selected files and replots the python performance graph combining the performances. 
+    %'Separate Performance Graphs': takes each file and recreates the python performance graph for each
+    %'Separate Spreadsheets': takes each file and provides a performance report for each
+    %'Overall Performance Report': takes all selected files and give a combined performance report combining performance data from all files
+    
 function HDF_Sniff_AV_all_options()
 
+%% Initialize Files and organize them
 %clears all previous data variables
 clear all
 %closes all previous figures
 close all
 
-windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
-Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
-
-%NameFile= [input('What is the name of the HDF5 file:  ','s') '.h5'];
-%FileNameInput = input('What is the name of the HDF5 file: ','s');  % Get the file name without the .hd5 (useful later on when saving excel file.
-%NameFile = append(FileNameInput, '.h5');  % combine the two strings so we can find the file.
-
-
 % Specify the folder where the files live.
-%% CHECK BEFORE EACH RUN
 myFolder = 'C:\VoyeurData';
 % Check to make sure that folder actually exists.  Warn user if it doesn't.
 if ~isfolder(myFolder)
@@ -37,7 +27,7 @@ if ~isfolder(myFolder)
     end
 end
 
-%% HOLD Ctrl and click desired files
+
 % Get a list of all files in the folder with the desired file name pattern.
 filePattern = fullfile(myFolder, '*.h5');
 %opens user access to the desired folder 

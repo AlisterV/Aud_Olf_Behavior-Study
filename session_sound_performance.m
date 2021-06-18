@@ -1,10 +1,10 @@
 %% Last edit made by Alister Virkler on 6/17/2021
-%This code shows the Psychometric Curves for a mouse for a Go/NoGo behavioral task based on sound levels.
+%This code shows theperformance for the Go/NoGo behavioral task based on sound levels.
 %It takes in a specified set of x data that are sound levels. Next, the
-%user is allowed to select thetest files they would like to analyze for a
+%user is allowed to select the test files they would like to analyze for a
 %specific mouse. After separating the data from each file
-%based on sound level, it calculates the performance data (% correct, false alarm rate, mean, std, ste...) and fits a psychometric curve using fitLogGrid while also plotting the number of
-%trials for each sound level.
+%based on sound level, it calculates the performance on each sound level for each file,
+%plots the mean and connects the data with a line.
 
 function session_sound_performance()
 
@@ -228,7 +228,3 @@ legend('show','location','best')
 % t.FontSize=10;
 % 
 end
-
-
-
-

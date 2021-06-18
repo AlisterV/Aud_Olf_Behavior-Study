@@ -302,7 +302,3 @@ t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center
 t.FontSize=10;
 
 end
-
-
-
-

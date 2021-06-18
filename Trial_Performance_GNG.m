@@ -233,5 +233,5 @@ behavorialResponseArray(21,1)="d prime: " +convertCharsToStrings(dpri); %PUT IN 
 
 % save the behavorial response data to an excel file.
 writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(file)+".xlsx"),'FileType','spreadsheet');
-end
 
+end

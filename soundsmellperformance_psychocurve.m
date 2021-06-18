@@ -12,14 +12,14 @@
 %trials for each trial type (odor/no odor).
 
 function soundsmellperformance_psychocurve()
+
 %% Initializes Files and organizes them 
 %clears all previous data variables
 clear all
 %closes all previous figures
 close all
+%specifies the folder
 myFolder = 'C:\VoyeurData';
-windowSize = 10; % Setting parameters/window of the moving filter that happens later on, in ms. Try to keep to a range of 5-50ms based on literature.
-Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which plots are generated later on. Set to 1 or 0.
 
 %This can be uncommented to allow the user to input the desired sound
 %levels
@@ -28,15 +28,16 @@ Scanner = 0;   %Was the data recorded in the MRI scanner? This will effect which
 
 %hard coded sound level
 x=[0 10 30 50 60 70 80];
+
 %allows user to choose folder if current folder is not found
 if ~isfolder(myFolder)
-    errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
-    uiwait(warndlg(errorMessage));
-    myFolder = uigetdir(); % Ask for a new one.
-    if myFolder == 0
-        % User clicked Cancel
-        return;
-    end
+  errorMessage = sprintf('Error: The following folder does not exist:\n%s\nPlease specify a new folder.', myFolder);
+  uiwait(warndlg(errorMessage));
+  myFolder = uigetdir(); % Ask for a new one.
+  if myFolder == 0
+    % User clicked Cancel
+    return;
+  end
 end
 % Get a list of all files in the folder with the desired file name pattern.
 filePattern = fullfile(myFolder, '*.h5');
@@ -44,14 +45,16 @@ filePattern = fullfile(myFolder, '*.h5');
 theFile =string(uigetfile(filePattern,'Multiselect','on'));
 %initializes a counter
 structrow=0;
+%if there is more than one file selected
 if length(theFile)>1
-%loops through the length of the files and adds a row each time
-for m=1:length(theFile)
+  %loops through the length of the files and adds a row each time
+  for m=1:length(theFile)
     structrow=structrow+1;
     theFiles(structrow)=dir(theFile(m));
-end
+  end
+  %if there is only one file selected
 else
-    theFiles(1)=dir(theFile(1));
+  theFiles(1)=dir(theFile(1));
 end
 %turns the Files from a structure into a table
 theFiles=struct2table(theFiles);
@@ -64,16 +67,16 @@ theFiles=[theFiles table(newcolumn,'VariableName',{'Date'})];
 %name string. Turns this string into a date and saves it into the table of
 %files
 for g=1:height(theFiles)
-    %takes out everything before 'T' in the name
-    before=extractBefore(theFiles(g,1).name,'T');
-    %takes out everything after 'D' in the name
-    after=extractAfter(before,'D');
-    %turns the string into a date
-    date=datestr(after,'mm/dd/yyyy');
-    %turns the date into a cell
-    D=cellstr(date);
-    %adds the file date into the table
-    theFiles(g,7)=D;
+  %takes out everything before 'T' in the name
+  before=extractBefore(theFiles(g,1).name,'T');
+  %takes out everything after 'D' in the name
+  after=extractAfter(before,'D');
+  %turns the string into a date
+  date=datestr(after,'mm/dd/yyyy');
+  %turns the date into a cell
+  D=cellstr(date);
+  %adds the file date into the table
+  theFiles(g,7)=D;
 end
 %sorts the rows of the table by their dates in descending order
 theFiles=sortrows(theFiles,'Date');
@@ -95,130 +98,131 @@ trialcounterarrayodor=zeros(numel(x),length(theFiles));
 
 %% Loops through every File and organizes data based on sound level and odor/no odor
 
-%loops through every file 
+%loops through every file
 for k = 1 : length(theFiles)
-    %selects the kth file 
-    fullFileName = theFiles(k).name;
-    %selects the kth file date and turns it into this format
-    compare=datetime(theFiles(k).Date,'InputFormat','MM/dd/yyyy');
-    %this is the cut off date, after this date, odor trials were started!
-    %This can be changed if previous odor trials want to be reset to sound
-    %only
-    cutoff=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
-    %reads the h5 file of the kth file
-    Data=h5read(fullFileName,'/Trials');
-    %gets the current mouse's ID#, only works if all files are from the
-    %same mouse
-    mousenum=Data.mouse(1:3,1)';
-    %Determines the number of trials for this particular file
-    NumTrials = length(Data.trialNumber);
-    %if statement says that if the date of the file is before the cutof
-    %date then change all odorvalves to the no odor valve (5)
-    if compare<=cutoff
-        %runs through every trial
-        for set=1:NumTrials
-            %changes the odorvalve to 5
-          Data.odorvalve(set,1)=5;
-        end
+  %selects the kth file
+  fullFileName = theFiles(k).name;
+  %selects the kth file date and turns it into this format
+  compare=datetime(theFiles(k).Date,'InputFormat','MM/dd/yyyy');
+  %this is the cut off date, after this date, odor trials were started!
+  %This can be changed if previous odor trials want to be reset to sound
+  %only
+  cutoff=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
+  %reads the h5 file of the kth file
+  Data=h5read(fullFileName,'/Trials');
+  %gets the current mouse's ID#, only works if all files are from the
+  %same mouse
+  mousenum=Data.mouse(1:3,1)';
+  %Determines the number of trials for this particular file
+  NumTrials = length(Data.trialNumber);
+  %if statement says that if the date of the file is before the cutof
+  %date then change all odorvalves to the no odor valve (5)
+  if compare<=cutoff
+    %runs through every trial
+    for set=1:NumTrials
+      %changes the odorvalve to 5
+      Data.odorvalve(set,1)=5;
     end
-    %initializes four more arrays to save data
-    soundresponse=zeros(numel(x),NumTrials);
-    soundresponseodor=zeros(numel(x),NumTrials);
-    trialcounter=zeros(numel(x),NumTrials);
-    trialcounterodor=zeros(numel(x),NumTrials);
-    
-    %for loop that saves the mouse's response depending on the sound level
-    %and the presence of odor
-    for Trials=1:NumTrials
-        %finds the sound level for kth file and trial
-        level=Data.sound_level(Trials);
-        %odor for the kth file and trial
-        odor=Data.odorvalve(Trials);
-        %mouse's response for the kth file and trial
-        mouseresponse=Data.response(Trials);
-        %loops through every sound level to compare the current sound level
-        %with and to see if there is odor or not for this trial
-        for e=1:numel(x)
-            %if the current sound level is equal to the looped sound level,
-            %and if it is equal to the no odor condition
-            if level==x(e) && odor==5
-                %saves the mouse's current response 
-                soundresponse(e,Trials)=mouseresponse;
-                %adds one to the counter 
-                trialcounter(e,Trials)=1;
-            %if the current sound level is equal to the looped sound level,
-            %and if it is equal to the odor condition
-            elseif level==x(e) && odor==8
-                %saves the mouse's current response for odor
-                soundresponseodor(e,Trials)=mouseresponse;
-                %adds one to the counter for odor
-                trialcounterodor(e,Trials)=1;
-            end
-        end
+  end
+  %initializes four more arrays to save data
+  soundresponse=zeros(numel(x),NumTrials);
+  soundresponseodor=zeros(numel(x),NumTrials);
+  trialcounter=zeros(numel(x),NumTrials);
+  trialcounterodor=zeros(numel(x),NumTrials);
+  
+  %for loop that saves the mouse's response depending on the sound level
+  %and the presence of odor
+  for Trials=1:NumTrials
+    %finds the sound level for kth file and trial
+    level=Data.sound_level(Trials);
+    %odor for the kth file and trial
+    odor=Data.odorvalve(Trials);
+    %mouse's response for the kth file and trial
+    mouseresponse=Data.response(Trials);
+    %loops through every sound level to compare the current sound level
+    %with and to see if there is odor or not for this trial
+    for e=1:numel(x)
+      %if the current sound level is equal to the looped sound level,
+      %and if it is equal to the no odor condition
+      if level==x(e) && odor==5
+        %saves the mouse's current response
+        soundresponse(e,Trials)=mouseresponse;
+        %adds one to the counter
+        trialcounter(e,Trials)=1;
+        %if the current sound level is equal to the looped sound level,
+        %and if it is equal to the odor condition
+      elseif level==x(e) && odor==8
+        %saves the mouse's current response for odor
+        soundresponseodor(e,Trials)=mouseresponse;
+        %adds one to the counter for odor
+        trialcounterodor(e,Trials)=1;
+      end
     end
-    %sums up the trial counter and adds it to the trial counter holder
-    trialcounterarray(:,k)=sum(trialcounter,2);
-    trialcounterarrayodor(:,k)=sum(trialcounterodor,2);
-    
-    %loops through all the no odor responses to tally them
-    for p=1:numel(x)
-        %initializes counter for each response type
-        gohit=0;
-        gomiss=0;
-        nogohit=0;
-        nogomiss=0;
-        %loops through all the trials to save each response
-        for w=1:NumTrials
-            %takes the current response
-            response=soundresponse(p,w);
-            %compares the response to all response types
-            if response == 1
-                gohit=gohit+1;
-            elseif response == 2
-                nogohit=nogohit+1;
-            elseif response == 3
-                gomiss=gomiss+1;
-            elseif response == 4
-                nogomiss=nogomiss+1;
-            else
-            end
-        end
-        %saves the counters into their respective arrays
-        gohitarray(p,k)=gohit;
-        gomissarray(p,k)=gomiss;
-        nogohitarray(p,k)=nogohit;
-        nogomissarray(p,k)=nogomiss;
+  end
+  %sums up the trial counter and adds it to the trial counter holder
+  trialcounterarray(:,k)=sum(trialcounter,2);
+  trialcounterarrayodor(:,k)=sum(trialcounterodor,2);
+  
+  %loops through each sound level with no odor and determines how many of
+  %each trial there were
+  for p=1:numel(x)
+    %initializes counter for each response type
+    gohit=0;
+    gomiss=0;
+    nogohit=0;
+    nogomiss=0;
+    %loops through all the trials to save each response
+    for w=1:NumTrials
+      %takes the current response
+      response=soundresponse(p,w);
+      %compares the current response to all response types
+      if response == 1
+        gohit=gohit+1;
+      elseif response == 2
+        nogohit=nogohit+1;
+      elseif response == 3
+        gomiss=gomiss+1;
+      elseif response == 4
+        nogomiss=nogomiss+1;
+      else
+      end
     end
-    
-    %loops through all the no odor responses to tally them
-    for p=1:numel(x)
-        %initializes counter for each response type with odor
-        gohitodor=0;
-        gomissodor=0;
-        nogohitodor=0;
-        nogomissodor=0;
-        %loops through all the trials to save each response
-        for w=1:NumTrials
-            %takes the current response
-            response=soundresponseodor(p,w);
-            %compares the response to all response types
-            if response == 1
-                gohitodor=gohitodor+1;
-            elseif response == 2
-                nogohitodor=nogohitodor+1;
-            elseif response == 3
-                gomissodor=gomissodor+1;
-            elseif response == 4
-                nogomissodor=nogomissodor+1;
-            else
-            end
-        end
-        %saves the counters into their respective arrays
-        gohitarrayodor(p,k)=gohitodor;
-        gomissarrayodor(p,k)=gomissodor;
-        nogohitarrayodor(p,k)=nogohitodor;
-        nogomissarrayodor(p,k)=nogomissodor;
+    %saves the counters into their respective arrays
+    gohitarray(p,k)=gohit;
+    gomissarray(p,k)=gomiss;
+    nogohitarray(p,k)=nogohit;
+    nogomissarray(p,k)=nogomiss;
+  end
+  
+  %loops through all the no odor responses to tally them
+  for p=1:numel(x)
+    %initializes counter for each response type with odor
+    gohitodor=0;
+    gomissodor=0;
+    nogohitodor=0;
+    nogomissodor=0;
+    %loops through all the trials to save each response
+    for w=1:NumTrials
+      %takes the current response
+      response=soundresponseodor(p,w);
+      %compares the response to all response types
+      if response == 1
+        gohitodor=gohitodor+1;
+      elseif response == 2
+        nogohitodor=nogohitodor+1;
+      elseif response == 3
+        gomissodor=gomissodor+1;
+      elseif response == 4
+        nogomissodor=nogomissodor+1;
+      else
+      end
     end
+    %saves the counters into their respective arrays
+    gohitarrayodor(p,k)=gohitodor;
+    gomissarrayodor(p,k)=gomissodor;
+    nogohitarrayodor(p,k)=nogohitodor;
+    nogomissarrayodor(p,k)=nogomissodor;
+  end
 end
 
 %% Calculates all necessary performance data based on the data stored above
@@ -256,11 +260,11 @@ columncounter=0;
 %loops through the number of columns that percent correct array for odor
 %has, and for all the columns that contain NaN, a counter is added
 for v=1:n
-    %seems if the column contains NaN
-    if isnan(percorrarrayodor(:,v))
-        %adds one to the counter if the column contains NaN
-        columncounter=columncounter+1;
-    end
+  %seems if the column contains NaN
+  if isnan(percorrarrayodor(:,v))
+    %adds one to the counter if the column contains NaN
+    columncounter=columncounter+1;
+  end
 end
 
 %takes out all NaN (only a problem if sound only trials are selected)
@@ -339,13 +343,13 @@ holdx=x;
 %include that in our threshold calculations (works only if zero is the no
 %go trial)
 for o=1:numel(x)
-    %if there is zero in the sound levels then take it out
-    if x(o)==0
-        %takes out the zero
-        x(o)=[];
-        %whenever zero is detected, the for loop is stopped
-        break
-    end
+  %if there is zero in the sound levels then take it out
+  if x(o)==0
+    %takes out the zero
+    x(o)=[];
+    %whenever zero is detected, the for loop is stopped
+    break
+  end
 end
 
 %plots error bars for the sound levels without zero and the average of the
@@ -374,17 +378,16 @@ hold on
 x1=x;
 %makes x into the same size as the y data
 for i=1:length(theFiles)
-    %for the first number, x equals itself
-    if i==1
-        x=x;
-    %after the first index, x1 gets added as a row to the current value of
-    %x
-    else
-        x=[x;x1];
-    end
+  %for the first number, x equals itself
+  if i==1
+    x=x;
+  %after the first index, x1 gets added as a row to the current value of x
+  else
+    x=[x;x1];
+  end
 end
 
-%calls fitLogGrid using all the date from both x and y for no odor
+%calls fitLogGrid using all the data from both x and y for no odor
 [params,mdl,threshold,sensitivity,fmcon,minfun,pthresh] = fitLogGrid(x(:),y(:));
 %creates 100 data points ranging from the smallest to the largest value in
 %the x data
@@ -398,20 +401,20 @@ hold on
 %name
 e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 
-%finds the size of the y data for odor 
+%finds the size of the y data for odor
 [m,n]=size(yodor);
 %loops through the number of rows from the size of the y data for odor
 %so the x data will have the same dimensions as yodor
 for t=1:m
-    %if the index equals one then the x data variable will be reset to
-    %the original sound level vector without zero
-    if t==1
-        x=x1;
+  %if the index equals one then the x data variable will be reset to
+  %the original sound level vector without zero
+  if t==1
+    x=x1;
     %after the first index, x1 gets added as a row to the current value of
     %x
-    else
-        x=[x;x1];
-    end
+  else
+    x=[x;x1];
+  end
 end
 
 %calls fitLogGrid using all the date from both x and y for odor
@@ -428,7 +431,7 @@ hold on
 %name
 e8=xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 %creates a legend for the figure but only shows variables e6(threshold no
-%odor) and e8(threshold odor) and places it at the best location 
+%odor) and e8(threshold odor) and places it at the best location
 eleg=legend([e6 e8],'location','best');
 
 %% Creates a table that gets added to the bottom of the graph for number of trials
@@ -458,10 +461,10 @@ hold on
 %creates the axis position for this table and makes sure that it is not
 %visible so only the table is seen
 axes('position',[.1,0,2,.1], 'Visible','off')
-%converts the table cell array into a string and also inverts it 
+%converts the table cell array into a string and also inverts it
 tableCell=string(tableCell');
 %splits the table and joins everything while also adding padding inbetween
-%the numbers of the table 
+%the numbers of the table
 tableChar = splitapply(@strjoin,pad(tableCell,5),[1;2;3]);
 %allows the table to be plotted as a text point, specifying the data point,
 %and also font, and where on the axis the table appears (can be changed if

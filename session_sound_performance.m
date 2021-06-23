@@ -189,7 +189,7 @@ ylabel('Hit Rate')
 %creates an x label
 xlabel('Sound Intensities (dB)')
 %creates a legend
-legend('show','location','best')
+legend('show','location','bestoutside')
 
 %% Creates a table that gets added to the bottom of the graph for number of trials
 

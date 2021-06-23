@@ -294,14 +294,14 @@ sdcorrodor=std(percorrarrayodor,0,2);
 %calculates the standard error from the standard deviation for no odor and
 %divides it by the column variable (the number of files selected with no
 %odor)
-stecorr=sdcorr./(column);
+stecorr=sdcorr./(sqrt(column));
 
 %finds the size of the percent corect array for odor
 [row,columnodor]=size(percorrarrayodor);
 %calculates the standard error from the standard deviation for odor and
 %divides it by the column variable (the number of files selected with
 %odor)
-stecorrodor=sdcorrodor./(columnodor);
+stecorrodor=sdcorrodor./sqrt((columnodor));
 
 %calculates the standard deviation of the False alarm array
 sdFA=std(FAarray);

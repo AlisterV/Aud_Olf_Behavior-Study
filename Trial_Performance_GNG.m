@@ -23,7 +23,7 @@ if ~isfolder(myFolder)
     end
 end
 
-%% HOLD Ctrl and click desired files
+%% Click desired file
 % Get a list of all files in the folder with the desired file name pattern.
 filePattern = fullfile(myFolder, '*.h5');
 %opens user access to the desired folder 
@@ -219,8 +219,12 @@ behavorialResponseArray(20,1)= "Incorrect Percent: " +convertCharsToStrings(Inco
 
 %calculates hit rate
 pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
+%writes pHit into array
+behavorialResponseArray(19,2)="pHit="+convertCharsToStrings(pHit);
 %calculates the false alarm rate
 pFA=NoGoMissCounter/(NoGoMissCounter+NoGoHitCounter);
+%writes pFA into array
+behavorialResponseArray(20,2)="pFA="+convertCharsToStrings(pFA);
 %need this to determine amount of go trials in case pHit=1
 nTarget=(GoHitCounter+GoMissCounter);
 %need this to determine amount of no go trials in case pFA=1;
@@ -228,10 +232,10 @@ nDistract=(NoGoHitCounter+NoGoMissCounter);
 %calls the dprime function and calculates the d prime value
 [dpri,ccrit] = dprime(pHit,pFA,nTarget,nDistract);
 %writes the d prime value into the array
-behavorialResponseArray(21,1)="d prime: " +convertCharsToStrings(dpri); %PUT IN VARIABLE HERE (calculate above)
+behavorialResponseArray(21,1)="d prime: " +convertCharsToStrings(dpri);
 
 
 % save the behavorial response data to an excel file.
-writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(file)+".xlsx"),'FileType','spreadsheet');
+writematrix(behavorialResponseArray, ("Interpreted_Data_" + convertCharsToStrings(FileNameInput)+".xlsx"),'FileType','spreadsheet');
 
 end

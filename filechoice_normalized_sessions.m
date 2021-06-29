@@ -408,6 +408,35 @@ switch answer
                 %creates an overall title for all graphs
                 sgtitle("Performance of Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
             end
+            %% Adds data to the performance report
+            
+            %gets the session number
+            sessionnum=Data.session(1);
+            %adds mouse number
+            performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
+            %adds session number
+            performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
+            %adds pHit
+            performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
+            %adds pFA
+            performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
+            %adds d prime
+            performancearray(5,k)="d'="+convertCharsToStrings(dpri);
+            %adds entire percent correct
+            performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
+            
+            %creates a criteria for the mouse to see if they performed well
+            %enough for that session
+            %if the mouse's dprime is greater than 2 and its entire percent
+            %correct is above 80
+            if dpri>=2 && percorr>=.8
+                %mark that the mouse passed the session
+                performancearray(7,k)='PASSED';
+                %if either case is not met
+            elseif dpri<2 || percorr<.8
+                %mark that the mouse failed the session
+                performancearray(7,k)='FAILED';
+            end
         end
         
         hold(ax3,'on')
@@ -422,35 +451,7 @@ switch answer
         %makes the legend 
         legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
         
-        %% Adds data to the performance report
 
-        %gets the session number
-        sessionnum=Data.session(1);  
-        %adds mouse number
-        performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
-        %adds session number
-        performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
-        %adds pHit
-        performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
-        %adds pFA
-        performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
-        %adds d prime
-        performancearray(5,k)="d'="+convertCharsToStrings(dpri);
-        %adds entire percent correct
-        performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
-        
-        %creates a criteria for the mouse to see if they performed well
-        %enough for that session
-        %if the mouse's dprime is greater than 2 and its entire percent
-        %correct is above 80
-        if dpri>=2 && percorr>=.8
-            %mark that the mouse passed the session
-            performancearray(7,k)='PASSED';
-        %if either case is not met
-        elseif dpri<2 || percorr<.8
-            %mark that the mouse failed the session
-            performancearray(7,k)='FAILED';
-        end
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
    
@@ -821,7 +822,7 @@ switch answer
                 nTarget=(GoHitCounter+GoMissCounter);
                 %calculates the distraction number of pFA
                 nDistract=(NoGoHitCounter+NoGoMissCounter);
-                %calls the dprime function to calculate it 
+                %calls the dprime function to calculate it
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
                 %creates a scatter
                 scatter(ax3,sessionnum,dpri)
@@ -854,6 +855,36 @@ switch answer
                 %creates an overall title for all graphs
                 sgtitle("Performance of Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
             end
+            
+            %% Adds data to the performance report
+            
+            %gets the session number
+            sessionnum=Data.session(1);
+            %adds mouse number
+            performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
+            %adds session number
+            performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
+            %adds pHit
+            performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
+            %adds pFA
+            performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
+            %adds d prime
+            performancearray(5,k)="d'="+convertCharsToStrings(dpri);
+            %adds entire percent correct
+            performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
+            
+            %creates a criteria for the mouse to see if they performed well
+            %enough for that session
+            %if the mouse's dprime is greater than 2 and its entire percent
+            %correct is above 80
+            if dpri>=2 && percorr>=.8
+                %mark that the mouse passed the session
+                performancearray(7,k)='PASSED';
+                %if either case is not met
+            elseif dpri<2 || percorr<.8
+                %mark that the mouse failed the session
+                performancearray(7,k)='FAILED';
+            end
         end
         
         hold(ax3,'on')
@@ -867,36 +898,7 @@ switch answer
         snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
         %makes the legend 
         legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
-        
-        %% Adds data to the performance report
 
-        %gets the session number
-        sessionnum=Data.session(1);  
-        %adds mouse number
-        performancearray(1,k)="Mouse "+convertCharsToStrings(mousenum);
-        %adds session number
-        performancearray(2,k)="Session "+convertCharsToStrings(sessionnum);
-        %adds pHit
-        performancearray(3,k)="pHit="+convertCharsToStrings(pHit);
-        %adds pFA
-        performancearray(4,k)="pFA="+convertCharsToStrings(pFA);
-        %adds d prime
-        performancearray(5,k)="d'="+convertCharsToStrings(dpri);
-        %adds entire percent correct
-        performancearray(6,k)="% Correct="+convertCharsToStrings(percorr);
-        
-        %creates a criteria for the mouse to see if they performed well
-        %enough for that session
-        %if the mouse's dprime is greater than 2 and its entire percent
-        %correct is above 80
-        if dpri>=2 && percorr>=.8
-            %mark that the mouse passed the session
-            performancearray(7,k)='PASSED';
-        %if either case is not met
-        elseif dpri<2 || percorr<.8
-            %mark that the mouse failed the session
-            performancearray(7,k)='FAILED';
-        end
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
 end

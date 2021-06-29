@@ -11,7 +11,7 @@
 %a psychometric curve using fitLogGrid while also plotting the number of
 %trials for each trial type (odor/no odor).
 
-function soundsmellperformance_psychocurve()
+function soundcompare_psychocurve()
 
 %% Initializes Files and organizes them 
 %clears all previous data variables
@@ -130,39 +130,61 @@ for k = 1 : length(theFiles)
   trialcounter=zeros(numel(x),NumTrials);
   trialcounterodor=zeros(numel(x),NumTrials);
   
-  %for loop that saves the mouse's response depending on the sound level
-  %and the presence of odor
-  for Trials=1:NumTrials
-    %finds the sound level for kth file and trial
-    level=Data.sound_level(Trials);
-    %odor for the kth file and trial
-    odor=Data.odorvalve(Trials);
-    %mouse's response for the kth file and trial
-    mouseresponse=Data.response(Trials);
-    %loops through every sound level to compare the current sound level
-    %with and to see if there is odor or not for this trial
-    for e=1:numel(x)
-      %if the current sound level is equal to the looped sound level,
-      %and if it is equal to the no odor condition
-      if level==x(e) && odor==5
-        %saves the mouse's current response
-        soundresponse(e,Trials)=mouseresponse;
-        %adds one to the counter
-        trialcounter(e,Trials)=1;
-        %if the current sound level is equal to the looped sound level,
-        %and if it is equal to the odor condition
-      elseif level==x(e) && odor==8
-        %saves the mouse's current response for odor
-        soundresponseodor(e,Trials)=mouseresponse;
-        %adds one to the counter for odor
-        trialcounterodor(e,Trials)=1;
+  if contains(fullFileName,'to_')==1
+      %for loop that saves the mouse's response depending on the sound level
+      %and the presence of odor
+      for Trials=1:NumTrials
+          %finds the sound level for kth file and trial
+          level=Data.sound_level(Trials);
+          %odor for the kth file and trial
+          odor=Data.odorvalve(Trials);
+          %mouse's response for the kth file and trial
+          mouseresponse=Data.response(Trials);
+          %loops through every sound level to compare the current sound level
+          %with and to see if there is odor or not for this trial
+          for e=1:numel(x)
+              %if the current sound level is equal to the looped sound level,
+              %and if it is equal to the no odor condition
+              if level==x(e) && odor==5
+                  %saves the mouse's current response
+                  soundresponseodor(e,Trials)=mouseresponse;
+                  %adds one to the counter
+                  trialcounterodor(e,Trials)=1;
+                  %if the current sound level is equal to the looped sound level,
+                  %and if it is equal to the odor condition
+              end
+          end
       end
-    end
+      %sums up the trial counter and adds it to the trial counter holder
+      trialcounterarray(:,k)=sum(trialcounter,2);
+      trialcounterarrayodor(:,k)=sum(trialcounterodor,2);
+  elseif contains(fullFileName,'t_')==1
+      for Trials=1:NumTrials
+          %finds the sound level for kth file and trial
+          level=Data.sound_level(Trials);
+          %odor for the kth file and trial
+          odor=Data.odorvalve(Trials);
+          %mouse's response for the kth file and trial
+          mouseresponse=Data.response(Trials);
+          %loops through every sound level to compare the current sound level
+          %with and to see if there is odor or not for this trial
+          for e=1:numel(x)
+              %if the current sound level is equal to the looped sound level,
+              %and if it is equal to the no odor condition
+              if level==x(e) && odor==5
+                  %saves the mouse's current response
+                  soundresponse(e,Trials)=mouseresponse;
+                  %adds one to the counter
+                  trialcounter(e,Trials)=1;
+                  %if the current sound level is equal to the looped sound level,
+                  %and if it is equal to the odor condition
+              end
+          end
+      end
+      %sums up the trial counter and adds it to the trial counter holder
+      trialcounterarray(:,k)=sum(trialcounter,2);
+      trialcounterarrayodor(:,k)=sum(trialcounterodor,2);
   end
-  %sums up the trial counter and adds it to the trial counter holder
-  trialcounterarray(:,k)=sum(trialcounter,2);
-  trialcounterarrayodor(:,k)=sum(trialcounterodor,2);
-  
   %loops through each sound level with no odor and determines how many of
   %each trial there were
   for p=1:numel(x)
@@ -194,7 +216,7 @@ for k = 1 : length(theFiles)
     nogomissarray(p,k)=nogomiss;
   end
   
-  %loops through all the no odor responses to tally them
+  %loops through all the odor responses to tally them
   for p=1:numel(x)
     %initializes counter for each response type with odor
     gohitodor=0;
@@ -239,6 +261,9 @@ FAarrayodor=nogomissarrayodor./trialcounterarrayodor;
 %only takes the top row of false alarm data for no odor (only works for 0dB
 %as no go trial)
 FAarray=FAarray(1,:);
+%takes out all NaNs in the array (this happens when sound only tests are
+%selected before odor tests)
+FAarray=FAarray(~isnan(FAarray));
 %only takes the top row of false alarm data for odor (only works for 0dB as
 %no go trial)
 FAarrayodor=FAarrayodor(1,:);
@@ -249,6 +274,28 @@ FAarrayodor=FAarrayodor(~isnan(FAarrayodor));
 %takes everything besides the first row of the percent correct no odor(this is to
 %remove the zeros where the FA data was)
 percorrarray=percorrarray(2:end,:);
+
+%creates a counter
+columncounter=0;
+%determines the size of the percent correct array for odor
+[m,n]=size(percorrarray);
+%loops through the number of columns that percent correct array for odor
+%has, and for all the columns that contain NaN, a counter is added
+for v=1:n
+  %seems if the column contains NaN
+  if isnan(percorrarray(:,v))
+    %adds one to the counter if the column contains NaN
+    columncounter=columncounter+1;
+  end
+end
+
+%takes out all NaN (only a problem if sound only trials are selected)
+percorrarray=percorrarray(~isnan(percorrarray));
+%reshapes the percent correct array for odor to have the original number of
+%rows but with the orignal number of columns minus the counter from the
+%previous loop
+percorrarray=reshape(percorrarray,m,n-columncounter);
+
 %takes everything besides the first row of the percent correct odor (this is to
 %remove the zeros where the FA data was)
 percorrarrayodor=percorrarrayodor(2:end,:);
@@ -371,12 +418,11 @@ ylim([0 1])
 ylabel('Hit rate')
 %creates a title using the last file's mouse number(if using multiple mice
 %date then comment out '+convertCharsToStrings(mousenum)+'
-title("Combined Performance of Mouse "+convertCharsToStrings(mousenum)+" on each Sound Level by Odor")
+title("Sound Only Test sound trials vs. Sound+odor Test no odor trials for Mouse "+convertCharsToStrings(mousenum))
 hold on
 
 %holds onto current value of x
 x1=x;
-%finds the size of the y data for no odor
 [m,n]=size(y);
 %makes x into the same size as the y data
 for i=1:m
@@ -401,7 +447,7 @@ e5=plot(xf,mdl(params,xf),'r');
 hold on
 %creates a vertical line at the threshold value and gives this threshold a
 %name
-e6=xline(threshold,'--r','DisplayName',"Threshold = "+convertCharsToStrings(threshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e6=xline(threshold,'--r','DisplayName',"Sound Threshold = "+convertCharsToStrings(threshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 
 %finds the size of the y data for odor
 [m,n]=size(yodor);
@@ -431,7 +477,7 @@ e7=plot(xfodor,odormdl(odorparams,xfodor),'b');
 hold on
 %creates a vertical line at the odor threshold value and gives this threshold a
 %name
-e8=xline(odorthreshold,'--b','DisplayName',"Odor Threshold = "+convertCharsToStrings(odorthreshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+e8=xline(odorthreshold,'--b','DisplayName',"Odor Test Sound trials Threshold = "+convertCharsToStrings(odorthreshold)+" dB");%,'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
 %creates a legend for the figure but only shows variables e6(threshold no
 %odor) and e8(threshold odor) and places it at the best location
 eleg=legend([e6 e8],'location','best');

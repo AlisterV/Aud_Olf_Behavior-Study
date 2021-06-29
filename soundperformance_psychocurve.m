@@ -238,8 +238,10 @@ hold on
 
 %holds onto current value of x
 x1=x;
+%finds the size of the y data for odor
+[m,n]=size(y);
 %makes x into the same size as the y data
-for i=1:length(theFiles)
+for i=1:m
   %for the first number, x equals itself
   if i==1
     x=x;

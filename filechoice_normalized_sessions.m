@@ -410,6 +410,18 @@ switch answer
             end
         end
         
+        hold(ax3,'on')
+        %creates a scatter with the same icon in black as the plotted data
+        reg_trial=scatter(1,100,'ok','DisplayName','Regular Trials');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_trial=scatter(1,100,'sk','filled','DisplayName','Sound Only Tests');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %makes the legend 
+        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
+        
         %% Adds data to the performance report
 
         %gets the session number
@@ -843,6 +855,18 @@ switch answer
                 sgtitle("Performance of Mouse "+convertCharsToStrings(mousenum)+" with Normalized Test Sessions")
             end
         end
+        
+        hold(ax3,'on')
+        %creates a scatter with the same icon in black as the plotted data
+        reg_trial=scatter(1,100,'ok','DisplayName','Regular Trials');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_trial=scatter(1,100,'sk','filled','DisplayName','Sound Only Tests');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %makes the legend 
+        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
         
         %% Adds data to the performance report
 

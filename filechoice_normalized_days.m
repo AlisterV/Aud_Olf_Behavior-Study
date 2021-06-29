@@ -40,10 +40,11 @@ switch answer
         %file pattern
         theFiles = dir(filePattern);
         %initializes tiles within a figure
-        ax1=nexttile;
-        ax2=nexttile;
-        ax3=nexttile;
-        ax4=nexttile;
+        t = tiledlayout(2,2,'Padding','compact','tilespacing','normal');
+        ax1=nexttile(1);
+        ax2=nexttile(2);
+        ax3=nexttile(3);
+        ax4=nexttile(4);
         structrow=0;
         
         %% Organizes the Files
@@ -250,7 +251,7 @@ switch answer
                 %calculates the percent hit rate
                 pHit=GoHitCounterarray/(GoHitCounterarray+GoMissCounterarray);
                 %creates a scatter
-                scatter(ax1,day,pHit,'filled')
+                scatter(ax1,day,pHit,'s','filled')
                 %labels the x axis
                 xlabel(ax1,'Day #')
                 %labels the y acis
@@ -266,7 +267,7 @@ switch answer
                 %calculates the percent false alarm rate
                 pFA=NoGoMissCounterarray/(NoGoHitCounterarray+NoGoMissCounterarray);
                 %creates a scatter
-                scatter(ax2,day,pFA,'filled')
+                scatter(ax2,day,pFA,'s','filled')
                 %labels the x axis
                 xlabel(ax2,'Day #')
                 %labels the y axis
@@ -286,7 +287,7 @@ switch answer
                 %calls the dprime function to calculate it 
                 [dpri]=dprime(pHit,pFA,nTarget,nDistract);
                 %plots a scatter of the dprime
-                scatter(ax3,day,dpri,'filled')
+                scatter(ax3,day,dpri,'s','filled')
                 %labels the x axis
                 xlabel(ax3,'Day #')
                 %labels the y axis
@@ -298,7 +299,7 @@ switch answer
                 %calculates the entire percent correct
                 percorr=(GoHitCounterarray+NoGoHitCounterarray)/(trial080counter);
                 %creates a scatter
-                scatter(ax4,day,percorr,'filled')
+                scatter(ax4,day,percorr,'s','filled')
                 %labels the x axis
                 xlabel(ax4,'Day #')
                 %labels the y axis
@@ -484,6 +485,18 @@ switch answer
                 performancearray(7,i)='FAILED';
             end
         end
+
+        hold(ax3,'on')
+        %creates a scatter with the same icon in black as the plotted data
+        reg_trial=scatter(1,100,'ok','DisplayName','Regular Trials');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_trial=scatter(1,100,'sk','filled','DisplayName','Sound Only Tests');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %makes the legend 
+        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
     
@@ -956,7 +969,19 @@ switch answer
             end
         end
         
+        hold(ax3,'on')
+        %creates a scatter with the same icon in black as the plotted data
+        reg_trial=scatter(1,100,'ok','DisplayName','Regular Trials');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_trial=scatter(1,100,'sk','filled','DisplayName','Sound Only Tests');
+        hold on
+        %creates a scatter with the same icon in black as the plotted data
+        snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %makes the legend 
+        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
         %this writes the performance report
+        
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
 end
 

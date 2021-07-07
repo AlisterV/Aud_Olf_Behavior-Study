@@ -80,7 +80,16 @@ switch answer
         day=0;
         %finds all the different dates within all the files
         [C,ia,ic]=unique(dates);
-        
+        %for loop to determine the day that the paradigm shift happened
+        for h=1:length(C)
+            %compares the unique dates with the specified shift date
+            if strcmp(C(h),'06/30/2021')
+                %if the day is the date when it occured, this day is stored
+                shift=h;
+                %if the day is found then the for loop is broken
+                break
+            end
+        end
         %% Loops through every File and organizes data by day and then by testing type
         
         %loops through each unique date, groups the data together and then
@@ -485,7 +494,12 @@ switch answer
                 performancearray(7,i)='FAILED';
             end
         end
-
+        %plots the session where the paradigm shift occured
+        xline(ax1,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax2,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax3,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax4,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        
         hold(ax3,'on')
         %creates a scatter with the same icon in black as the plotted data
         reg_trial=scatter(1,100,'ok','DisplayName','Regular Trials');
@@ -495,8 +509,10 @@ switch answer
         hold on
         %creates a scatter with the same icon in black as the plotted data
         snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %creates a line with the same icon in black as the plotted data
+        parshift=xline(-1,'--k','DisplayName','Paradigm Shift');
         %makes the legend 
-        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
+        legend(ax3,[reg_trial snd_trial snd_odr_trial parshift],'location','southoutside')
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
     
@@ -566,7 +582,16 @@ switch answer
         day=0;
         %finds all the different dates within all the files
         [C,ia,ic]=unique(dates);
-        
+        %for loop to determine the day that the paradigm shift happened
+        for h=1:length(C)
+            %compares the unique dates with the specified shift date
+            if strcmp(C(h),'06/30/2021')
+                %if the day is the date when it occured, this day is stored
+                shift=h;
+                %if the day is found then the for loop is broken
+                break
+            end
+        end
         %% Loops through every File and organizes data by day and then by testing type
         
         %loops through each unique date, groups the data together and then
@@ -968,6 +993,11 @@ switch answer
                 performancearray(7,i)='FAILED';
             end
         end
+        %plots the session where the paradigm shift occured
+        xline(ax1,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax2,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax3,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax4,shift,'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
         
         hold(ax3,'on')
         %creates a scatter with the same icon in black as the plotted data
@@ -978,8 +1008,10 @@ switch answer
         hold on
         %creates a scatter with the same icon in black as the plotted data
         snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %creates a line with the same icon in black as the plotted data
+        parshift=xline(-1,'--k','DisplayName','Paradigm Shift');
         %makes the legend 
-        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
+        legend(ax3,[reg_trial snd_trial snd_odr_trial parshift],'location','southoutside')
         %this writes the performance report
         
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')

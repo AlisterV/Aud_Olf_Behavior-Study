@@ -64,6 +64,13 @@ switch answer
         theFiles=sortrows(theFiles,'Date');
         %turns the file table back into the structure
         theFiles=table2struct(theFiles);
+        for h=1:length(theFiles)
+            if strcmp(theFiles(h).Date,'06/30/2021')
+                shiftright=extractBefore(theFiles(h).name,'_D');
+                shift=extractAfter(shiftright,'sess');
+                break
+            end
+        end
         %initializes the plots
         ax1=nexttile;
         ax2=nexttile;
@@ -438,6 +445,11 @@ switch answer
                 performancearray(7,k)='FAILED';
             end
         end
+        %plots the session where the paradigm shift occured
+        xline(ax1,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax2,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax3,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax4,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
         
         hold(ax3,'on')
         %creates a scatter with the same icon in black as the plotted data
@@ -448,9 +460,10 @@ switch answer
         hold on
         %creates a scatter with the same icon in black as the plotted data
         snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
-        %makes the legend 
-        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
-        
+        %creates a line with the same icon in black as the plotted data
+        parshift=xline(-1,'--k','DisplayName','Paradigm Shift');
+        %makes the legend
+        legend(ax3,[reg_trial snd_trial snd_odr_trial parshift],'location','southoutside')
 
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')
@@ -514,6 +527,13 @@ switch answer
         theFiles=sortrows(theFiles,'Date');
         %turns the file table back into the structure
         theFiles=table2struct(theFiles);
+        for h=1:length(theFiles)
+            if strcmp(theFiles(h).Date,'06/30/2021')
+                shiftright=extractBefore(theFiles(h).name,'_D');
+                shift=extractAfter(shiftright,'sess');
+                break
+            end
+        end
 
         %% Loops through every File and organizes data by testing type and then plots it
         
@@ -886,6 +906,11 @@ switch answer
                 performancearray(7,k)='FAILED';
             end
         end
+        %plots the session where the paradigm shift occured
+        xline(ax1,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax2,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax3,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
+        xline(ax4,str2double(shift),'--r')%'DisplayName',"Paradigm Shift",'LabelHorizontalAlignment','right','LabelVerticalAlignment','bottom')
         
         hold(ax3,'on')
         %creates a scatter with the same icon in black as the plotted data
@@ -896,8 +921,10 @@ switch answer
         hold on
         %creates a scatter with the same icon in black as the plotted data
         snd_odr_trial=scatter(1,100,'dk','filled','DisplayName','Odor + Sound Tests');
+        %creates a line with the same icon in black as the plotted data
+        parshift=xline(-1,'--k','DisplayName','Paradigm Shift');
         %makes the legend 
-        legend(ax3,[reg_trial snd_trial snd_odr_trial],'location','southoutside')
+        legend(ax3,[reg_trial snd_trial snd_odr_trial parshift],'location','southoutside')
 
         %this writes the performance report
         writematrix(performancearray,"Performance Data_ChosenFiles.xlsx",'FileType','spreadsheet')

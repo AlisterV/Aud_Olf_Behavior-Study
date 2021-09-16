@@ -18,11 +18,11 @@ myFolder = 'C:\VoyeurData';
 
 %This can be uncommented to allow the user to input the desired sound
 %levels
-% answer=inputdlg('Enter Sound Levels Used: ');
-% x=str2num(answer{1});
+%answer=inputdlg('Enter Sound Levels Used: ');
+%x=str2num(answer{1});
 
 %hard coded sound level
-x=[0 10 30 50 60 70 80];
+x=[0 50 55 60 65 70];
 
 %allows user to choose folder if current folder is not found
 if ~isfolder(myFolder)

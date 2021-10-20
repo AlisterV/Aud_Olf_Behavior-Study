@@ -43,30 +43,32 @@ end
 if nargin < 3 % number of target presentations
     nTarget = 1e8; % if not specified, take a very high number
 end
-if pHit > 1 | pFA > 1 
+for i=length(pHit)
+if pHit(i) > 1 | pFA > 1 
     error('Meaningless probabilities. (Do NOT enter percentage values!)');
 end % if
-if pHit < 0 | pFA < 0 
+if pHit(i) < 0 | pFA < 0 
     error('Meaningless negative probabilities.');
 end % if
 
-if pHit > 0
+if pHit(i) > 0
     pHit = min(pHit,1-.5/nTarget);
-else pHit = .5/nTarget;
+else
+    pHit = .5/nTarget;
 end % if pHit=0
 if pFA < 1
     pFA = max(pFA,.5/nDistract);
-else pFA=1-.5/nDistract;
+else
+    pFA=1-.5/nDistract;
 end % if pFA=0
 
 %-- Convert to Z scores, no error checking
 zHit = -sqrt(2).*erfcinv(2*pHit);
 zFA = -sqrt(2).*erfcinv(2*pFA);
-%-- Calculate d-prime
-dpri = zHit - zFA ;
 
 %-- Calculate d-prime and bias
 dpri = zHit - zFA ;
+end
 if nargout > 1
     ccrit = -.5*(zHit + zFA);
 end % if nargout

@@ -11,7 +11,7 @@
 %a psychometric curve using fitLogGrid while also plotting the number of
 %trials for each trial type (odor/no odor).
 
-function soundsmellperformance_psychocurve()
+function [y, yodor, FAarray, FAarrayodor, xsig, xsigodor, ysig, ysigodor, threshold, odorthreshold, gohitarray, gohitarrayodor, gomissarray, gomissarrayodor, nogohitarray, nogohitarrayodor, nogomissarray, nogomissarrayodor, trialcounterarray, trialcounterarrayodor] = soundsmellperformance_psychocurve()
 
 %% Initializes Files and organizes them 
 %clears all previous data variables
@@ -23,11 +23,11 @@ myFolder = 'C:\VoyeurData';
 
 %This can be uncommented to allow the user to input the desired sound
 %levels
-%answer=inputdlg('Enter Sound Levels Used: ');
-%x=str2num(answer{1});
+answer=inputdlg('Enter Sound Levels Used: ');
+x=str2num(answer{1});
 
 %hard coded sound level
-x=[0 50 55 60 65 70];
+%x=[0 50 55 60 65 70];
 
 %allows user to choose folder if current folder is not found
 if ~isfolder(myFolder)
@@ -83,6 +83,104 @@ theFiles=sortrows(theFiles,'Date');
 %turns the file table back into the structure
 theFiles=table2struct(theFiles);
 
+%% Sound Detection
+%  
+% %creates a cell array to hold each files sound level
+% soundhold = {};
+% %loops through to grab each files sound level
+% for s = 1 : length(theFiles)
+%     %holds the file name
+%     filehold = theFiles(s).name;
+%     %reads the data in the current file
+%     snd = h5read(filehold, '/Trials');
+%     %gets the sound level data and find only the unique elements
+%     %(eliminates repeats)
+%     sl = {unique(snd.sound_level)};
+%     %holds onto the sound levels for that file
+%     soundhold(s) = sl;
+% end
+% %creates a matrix to hold the sound levels
+% sound = [];
+% %loops through every file and makes each element in the cell array into one
+% %joined matrix
+% for l = 1: length(theFiles)
+%     %converts the current element of the sound cell array into a matrix
+%     snmat = cell2mat(soundhold(l));
+%     %if the iteration is after the first loop enter
+%     if l > 1
+%         %adds the current sound levels onto the matrix 
+%         sound = [sound;snmat];
+%     %if it is the first loop enter
+%     else
+%         %the holding matrix becomes the first set of sound levels
+%         sound = snmat;
+%     end
+% end
+% %finds any repeats of sound levels between the files and only takes the
+% %unique ones, creating a matrix that combines all sound levels from each
+% %trial
+% x = unique(sound)';    
+% 
+% %loops through to find the longest group of sound levels
+% len = 0;
+% for t = 1:length(theFiles)
+%     curr_len = length(cell2mat(soundhold(t)));
+%     if curr_len > len
+%         len = curr_len;
+%     elseif curr_len < len
+%         len = len;
+%     end
+% end
+% 
+% %loops through to create a matrix of all sounds levels, and equalizes their
+% %size to match the largest (attaches NaN to end if too short)
+% sounds = zeros(length(theFiles),len);
+% for d = 1:length(theFiles)
+%     curr_lev = cell2mat(soundhold(d))';
+%     if length(curr_lev) == len
+%         sounds(d,:) = curr_lev;
+%     else
+%         C = abs(length(curr_lev) - len);
+%         for da = 1:C
+%             curr_lev = [curr_lev NaN];
+%         end
+%         sounds(d,:) = curr_lev;
+%     end
+% end
+% 
+% 
+% min_snd = zeros(length(theFiles),1);
+% for r = 1:length(theFiles)
+%     file_sound = sounds(r,:);
+%     min_sound = min(file_sound(file_sound>0));
+%     min_snd(r) = min_sound;
+% end
+% 
+% minimum_sound = min(min_snd);
+% ord_sound = []; %zeros(length(theFiles), len);
+% 
+% if range(min_snd) ~= 0
+%     
+% end
+
+        
+        
+
+% for r = 1:numel(sounds)
+%     elem = sounds(r);
+%     if r == 1
+%         old_elem = elem + 1;
+%     end
+%     if old_elem == elem
+%         continue
+%     else
+%         fin = sounds == elem;
+%         grp = sounds(fin);
+%         ord_sound(:,r) = grp;
+%     end
+%     old_elem = elem;
+% end
+%% Initialization
 %the following initialize arrays that have the number of rows of the input
 %x, and have the number of columns of the length of the files selected
 gohitarray=zeros(numel(x),length(theFiles));
@@ -94,7 +192,7 @@ gomissarrayodor=zeros(numel(x),length(theFiles));
 nogomissarray=zeros(numel(x),length(theFiles));
 nogomissarrayodor=zeros(numel(x),length(theFiles));
 trialcounterarray=zeros(numel(x),length(theFiles));
-trialcounterarrayodor=zeros(numel(x),length(theFiles));
+trialcounterarrayodor=zeros(numel(x),length(theFiles));    
 
 %% Loops through every File and organizes data based on sound level and odor/no odor
 
@@ -121,7 +219,8 @@ for k = 1 : length(theFiles)
     %runs through every trial
     for set=1:NumTrials
       %changes the odorvalve to 5
-      Data.odorvalve(set,1)=5;
+      %Data.odorvalve(set,1)=5;
+      Data.odorvalve(set,1)=10;
     end
   end
   %initializes four more arrays to save data
@@ -129,6 +228,7 @@ for k = 1 : length(theFiles)
   soundresponseodor=zeros(numel(x),NumTrials);
   trialcounter=zeros(numel(x),NumTrials);
   trialcounterodor=zeros(numel(x),NumTrials);
+  
   
   %for loop that saves the mouse's response depending on the sound level
   %and the presence of odor
@@ -151,7 +251,7 @@ for k = 1 : length(theFiles)
         trialcounter(e,Trials)=1;
         %if the current sound level is equal to the looped sound level,
         %and if it is equal to the odor condition
-      elseif level==x(e) && odor==8
+      elseif level==x(e) && odor==12
         %saves the mouse's current response for odor
         soundresponseodor(e,Trials)=mouseresponse;
         %adds one to the counter for odor
@@ -298,6 +398,7 @@ stecorr=sdcorr./(sqrt(column));
 
 %finds the size of the percent corect array for odor
 [row,columnodor]=size(percorrarrayodor);
+columnodor
 %calculates the standard error from the standard deviation for odor and
 %divides it by the column variable (the number of files selected with
 %odor)
@@ -397,7 +498,10 @@ xf=linspace(min(x(:)),max(x(:)),100);
 hold on
 %plots the x line data and uses the model from fitLogGrid, the parameters
 %from fitLogGrid and the x line data
-e5=plot(xf,mdl(params,xf),'r');
+xsig = xf;
+ysig = mdl(params,xf);
+e5=plot(xsig,ysig,'r');
+%e5=plot(xf,mdl(params,xf),'r');
 hold on
 %creates a vertical line at the threshold value and gives this threshold a
 %name
@@ -427,7 +531,10 @@ xfodor=linspace(min(x(:)),max(x(:)),100);
 hold on
 %plots the x line odor data and uses the model from fitLogGrid, the odor parameters
 %from fitLogGrid and the x line odor data
-e7=plot(xfodor,odormdl(odorparams,xfodor),'b');
+xsigodor = xfodor;
+ysigodor = odormdl(odorparams,xfodor);
+e7=plot(xsigodor,ysigodor,'b');
+%e7=plot(xfodor,odormdl(odorparams,xfodor),'b');
 hold on
 %creates a vertical line at the odor threshold value and gives this threshold a
 %name

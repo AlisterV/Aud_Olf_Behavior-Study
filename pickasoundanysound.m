@@ -11,6 +11,10 @@
 %a psychometric curve using fitLogGrid while also plotting the number of
 %trials for each trial type (odor/no odor).
 
+
+% 241 line added 
+% 90 - 190 sound detection added
+% 363 - 397changes were made, some commented out, some added omitnan 
 function pickasoundanysound()
 
 %% Initializes Files and organizes them 
@@ -170,40 +174,21 @@ for u = 1:length(theFiles)
     end
 end
 
-% need to say if the column of elements is not equal then make the zeros
-% NaN
 
-min_snd = zeros(length(theFiles),1);
-for r = 1:length(theFiles)
-    file_sound = sounds(r,:);
-    min_sound = min(file_sound(file_sound>0));
-    min_snd(r) = min_sound;
-end
-
-minimum_sound = min(min_snd);
-ord_sound = []; %zeros(length(theFiles), len);
-
-if range(min_snd) ~= 0
-    
-end
-
-        
-        
-
-for r = 1:numel(sounds)
-    elem = sounds(r);
-    if r == 1
-        old_elem = elem + 1;
+for w = 1:length(new_sound)
+    col_snd = new_sound(:,w);
+    if range(col_snd) ~= 0
+        for ws = 1:length(col_snd)
+            el = col_snd(ws);
+            if el == 0
+                col_snd(ws) = NaN;
+            end
+        end
+        new_sound(:,w) = col_snd;
     end
-    if old_elem == elem
-        continue
-    else
-        fin = sounds == elem;
-        grp = sounds(fin);
-        ord_sound(:,r) = grp;
-    end
-    old_elem = elem;
 end
+
+
 %% Initialization
 %the following initialize arrays that have the number of rows of the input
 %x, and have the number of columns of the length of the files selected
@@ -252,7 +237,8 @@ for k = 1 : length(theFiles)
   soundresponseodor=zeros(numel(x),NumTrials);
   trialcounter=zeros(numel(x),NumTrials);
   trialcounterodor=zeros(numel(x),NumTrials);
-  
+
+  x = new_sound(k,:);
   
   %for loop that saves the mouse's response depending on the sound level
   %and the presence of odor
@@ -275,7 +261,7 @@ for k = 1 : length(theFiles)
         trialcounter(e,Trials)=1;
         %if the current sound level is equal to the looped sound level,
         %and if it is equal to the odor condition
-      elseif level==x(e) && odor==12
+      elseif level==x(e) && odor==10
         %saves the mouse's current response for odor
         soundresponseodor(e,Trials)=mouseresponse;
         %adds one to the counter for odor
@@ -377,26 +363,26 @@ percorrarray=percorrarray(2:end,:);
 %remove the zeros where the FA data was)
 percorrarrayodor=percorrarrayodor(2:end,:);
 
-%creates a counter
-columncounter=0;
-%determines the size of the percent correct array for odor
-[m,n]=size(percorrarrayodor);
-%loops through the number of columns that percent correct array for odor
-%has, and for all the columns that contain NaN, a counter is added
-for v=1:n
-  %seems if the column contains NaN
-  if isnan(percorrarrayodor(:,v))
-    %adds one to the counter if the column contains NaN
-    columncounter=columncounter+1;
-  end
-end
-
-%takes out all NaN (only a problem if sound only trials are selected)
-percorrarrayodor=percorrarrayodor(~isnan(percorrarrayodor));
-%reshapes the percent correct array for odor to have the original number of
-%rows but with the orignal number of columns minus the counter from the
-%previous loop
-percorrarrayodor=reshape(percorrarrayodor,m,n-columncounter);
+% %creates a counter
+% columncounter=0;
+% %determines the size of the percent correct array for odor
+% [m,n]=size(percorrarrayodor);
+% %loops through the number of columns that percent correct array for odor
+% %has, and for all the columns that contain NaN, a counter is added
+% for v=1:n
+%   %seems if the column contains NaN
+%   if isnan(percorrarrayodor(:,v))
+%     %adds one to the counter if the column contains NaN
+%     columncounter=columncounter+1;
+%   end
+% end
+% 
+% %takes out all NaN (only a problem if sound only trials are selected)
+% percorrarrayodor=percorrarrayodor(~isnan(percorrarrayodor));
+% %reshapes the percent correct array for odor to have the original number of
+% %rows but with the orignal number of columns minus the counter from the
+% %previous loop
+% percorrarrayodor=reshape(percorrarrayodor,m,n-columncounter);
 
 %inverts the percent correct array for no odor and saves it as y
 y=percorrarray';
@@ -404,14 +390,14 @@ y=percorrarray';
 yodor=percorrarrayodor';
 
 %calculates the mean of the rows of the percent correct array for no odor
-meanpercorr=mean(percorrarray,2);
+meanpercorr=mean(percorrarray,2,'omitnan');
 %calculates the mean of the rows of the percent correct array for odor
-meanpercorrodor=mean(percorrarrayodor,2);
+meanpercorrodor=mean(percorrarrayodor,2,'omitnan');
 
 %calculates the standard deviation of the percent correct array for no odor
-sdcorr=std(percorrarray,0,2);
+sdcorr=std(percorrarray,0,2,'omitnan');
 %calculate the standard deviation of the percent correct array for odor
-sdcorrodor=std(percorrarrayodor,0,2);
+sdcorrodor=std(percorrarrayodor,0,2,'omitnan');
 
 %finds the size of the percent correct array for no odor
 [row,column]=size(percorrarray);
@@ -422,7 +408,7 @@ stecorr=sdcorr./(sqrt(column));
 
 %finds the size of the percent corect array for odor
 [row,columnodor]=size(percorrarrayodor);
-columnodor
+%columnodor
 %calculates the standard error from the standard deviation for odor and
 %divides it by the column variable (the number of files selected with
 %odor)

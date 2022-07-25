@@ -61,10 +61,12 @@ GoHitCounter = 0;
 NoGoHitCounter = 0;
 GoMissCounter = 0;
 NoGoMissCounter = 0;
-behavorialResponseArray(12, 1) = "Go Hit";
-behavorialResponseArray(13, 1) = "Go Miss";
-behavorialResponseArray(14, 1) = "No Go Hit";
-behavorialResponseArray(15, 1) = "No Go Miss";
+behavorialResponseArray(14, 1) = "Go Hit";
+behavorialResponseArray(15, 1) = "Go Miss";
+behavorialResponseArray(16, 1) = "No Go Hit";
+behavorialResponseArray(17, 1) = "No Go Miss";
+
+Data.odorant = string(Data.odorant');
 
 %opens a figure
 figure(1)
@@ -93,7 +95,7 @@ for Trials = 1:NumTrials
     %sees if the file contains a field called sound level, later files have
     %this but not all
     if isfield(Data,'sound_level')==1
-      %if the file contains sound level the choose the trils level
+      %if the file contains sound level the choose the trials level
         soundlevel = Data.sound_level(Trials);
         behavorialResponseArray(7,Trials)= "Sound Level";
         behavorialResponseArray(8,Trials)=soundlevel;
@@ -107,6 +109,8 @@ for Trials = 1:NumTrials
     behavorialResponseArray(10,Trials)=odorvalve;
     % Save the numerical result of this mouses' behavorial for the trial.
     behavorialResponseArray(5, Trials) = mouseResponse;
+    behavorialResponseArray(11,Trials) = "Odorant";
+    behavorialResponseArray(12,Trials) = Data.odorant(Trials);
     
     % Translate the animals response for the trial.
     if mouseResponse == 1
@@ -114,7 +118,7 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "Go Hit";
         %adds one to the go hit counter
         GoHitCounter = GoHitCounter + 1;
-        behavorialResponseArray(12, 2) = GoHitCounter;
+        behavorialResponseArray(14, 2) = GoHitCounter;
         %puts a one in this array
         GoTrialPerformance(Trials)= 1;
         %calculates the no go performance
@@ -136,7 +140,7 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "NoGo Hit";
         %adds one o the nogo hit counter
         NoGoHitCounter = NoGoHitCounter + 1;
-        behavorialResponseArray(14, 2) = NoGoHitCounter;
+        behavorialResponseArray(16, 2) = NoGoHitCounter;
         %adds one to this array
         NoGoTrialPerformance(Trials)=1;
         %calculates the go percentage
@@ -158,7 +162,7 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "Go Miss";
         %adds one to the go miss counter
         GoMissCounter = GoMissCounter + 1;
-        behavorialResponseArray(13, 2) = GoMissCounter;
+        behavorialResponseArray(15, 2) = GoMissCounter;
         %adds negative one to this array
         GoTrialPerformance(Trials)=-1;
         %calculates the no go percentage
@@ -180,7 +184,7 @@ for Trials = 1:NumTrials
         behavorialResponseArray(6, Trials) = "NoGo Miss";
         %adds one to the no go miss counter
         NoGoMissCounter = NoGoMissCounter + 1;
-        behavorialResponseArray(15, 2) = NoGoMissCounter;
+        behavorialResponseArray(17, 2) = NoGoMissCounter;
         %adds negative one to this array
         NoGoTrialPerformance(Trials) = -1;
         %calculates the go percentage
@@ -204,24 +208,24 @@ legend('Go Trial','NoGo Trial','location','best')
 legend('boxoff')
 
 %writes the number of trials for the file
-behavorialResponseArray(17, 1) = "Total number of trials: " +convertCharsToStrings(NumTrials);
+behavorialResponseArray(19, 1) = "Total number of trials: " +convertCharsToStrings(NumTrials);
 %calculates the correct percentage
 Correctpercentage=((GoHitCounter + NoGoHitCounter)/NumTrials)*100;
 %calculates the incorrect percentage
 Incorrectpercentage=((GoMissCounter + NoGoMissCounter)/NumTrials)*100;
 %writes the correct percentage
-behavorialResponseArray(19,1)= "Correct Percent: " +convertCharsToStrings(Correctpercentage)+"%";
+behavorialResponseArray(21,1)= "Correct Percent: " +convertCharsToStrings(Correctpercentage)+"%";
 %writes the incorrect percentage
-behavorialResponseArray(20,1)= "Incorrect Percent: " +convertCharsToStrings(Incorrectpercentage)+"%";
+behavorialResponseArray(22,1)= "Incorrect Percent: " +convertCharsToStrings(Incorrectpercentage)+"%";
 
 %calculates hit rate
 pHit=GoHitCounter/(GoHitCounter+GoMissCounter);
 %writes pHit into array
-behavorialResponseArray(19,2)="pHit="+convertCharsToStrings(pHit);
+behavorialResponseArray(21,2)="pHit="+convertCharsToStrings(pHit);
 %calculates the false alarm rate
 pFA=NoGoMissCounter/(NoGoMissCounter+NoGoHitCounter);
 %writes pFA into array
-behavorialResponseArray(20,2)="pFA="+convertCharsToStrings(pFA);
+behavorialResponseArray(22,2)="pFA="+convertCharsToStrings(pFA);
 %need this to determine amount of go trials in case pHit=1
 nTarget=(GoHitCounter+GoMissCounter);
 %need this to determine amount of no go trials in case pFA=1;
@@ -229,7 +233,7 @@ nDistract=(NoGoHitCounter+NoGoMissCounter);
 %calls the dprime function and calculates the d prime value
 [dpri,ccrit] = dprime(pHit,pFA,nTarget,nDistract);
 %writes the d prime value into the array
-behavorialResponseArray(21,1)="d prime: " +convertCharsToStrings(dpri);
+behavorialResponseArray(23,1)="d prime: " +convertCharsToStrings(dpri);
 
 
 % save the behavorial response data to an excel file.

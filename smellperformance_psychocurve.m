@@ -1,4 +1,4 @@
-%% Last edit made by Alister Virkler on 6/17/2021
+%% Last edit made by Alister Virkler on 8/3/2022
 %This code shows the Psychometric Curves for a mouse for a Go/NoGo behavioral odor task based on sound levels.
 %It takes in a specified set of x data that are sound levels. Next, the
 %user is allowed to select thetest files they would like to analyze for a
@@ -105,23 +105,18 @@ for k = 1 : length(theFiles)
   cutoff=datetime('06/10/2021','InputFormat','MM/dd/yyyy');
   %reads the h5 file of the kth file
   Data=h5read(fullFileName,'/Trials');
-  for cn = 1:length(theFiles)
-    %selects the kth file
-    fullFileName = theFiles(cn).name;
-    Data=h5read(fullFileName,'/Trials');
-    Data.concentration = []';
-    odors = string(Data.odorant');
-    for g = 1:length(Data.trialNumber)
-       conc_str = extractAfter(odors(g),'_');
-       conc = str2double(conc_str);
-       if isnan(conc)
-           conc = 0;
-       end
-       Data.concentration(g) = conc;
-    end
-    Data.concentration = Data.concentration';
+  Data.concentration = []';
+  odors = string(Data.odorant');
+  for g = 1:length(Data.trialNumber)
+     conc_str = extractAfter(odors(g),'_');
+     conc = str2double(conc_str);
+     if isnan(conc)
+         conc = 0;
+     end
+     Data.concentration(g) = conc;
   end
-      %gets the current mouse's ID#, only works if all files are from the
+  Data.concentration = Data.concentration';
+  %gets the current mouse's ID#, only works if all files are from the
   %same mouse
   mousenum=Data.mouse(1:3,1)';
   %Determines the number of trials for this particular file
@@ -137,7 +132,7 @@ for k = 1 : length(theFiles)
     end
   end
   %initializes four more arrays to save data
-  soundresponse=zeros(numel(x),NumTrials);
+  odorresponse=zeros(numel(x),NumTrials);
   
   trialcounter=zeros(numel(x),NumTrials);
   
@@ -158,14 +153,14 @@ for k = 1 : length(theFiles)
 %       %and if it is equal to the no odor condition
        if conc==x(e)
 %         %saves the mouse's current response
-         soundresponse(e,Trials)=mouseresponse;
+         odorresponse(e,Trials)=mouseresponse;
 %         %adds one to the counter
          trialcounter(e,Trials)=1;
        end
      end
   end
   %sums up the trial counter and adds it to the trial counter holder
-   % trialcounterarray(:,k)=sum(trialcounter,2);
+  trialcounterarray(:,k)=sum(trialcounter,2);
   
   %loops through each sound level with no odor and determines how many of
   %each trial there were
@@ -178,7 +173,7 @@ for k = 1 : length(theFiles)
     %loops through all the trials to save each response
     for w=1:NumTrials
       %takes the current response
-      response=soundresponse(p,w);
+      response=odorresponse(p,w);
       %compares the current response to all response types
       if response == 1
         gohit=gohit+1;
@@ -246,7 +241,7 @@ steFA=sdFA/(sqrt(column));
 hfig = figure();
 
 %creates an axis position for the figure (can change if graph does not fit)
-%axes('position',[.1,.25,.8,.7])
+axes('position',[.1,.25,.8,.7])
 %makes these values the limits of the x axis
 xlim([log10(x(2)) log10(max(x))])
 %xlim([0 4])
@@ -342,61 +337,52 @@ e60=xline(threshold,'--r','DisplayName',"Actual Threshold = "+convertCharsToStri
 eleg=legend([e6 e60],'location','best');
 
 %% Creates a table that gets added to the bottom of the graph for number of trials
-% 
-% %sums the trial counter for no odor across all rows
-% NumberofTrials=sum(trialcounterarray,2);
-% %creates a variable using all the sound levels (including zero)
-% Concentrations = holdx';
-% 
-% %creates a table from the sound level data, and both numbers of trials for
-% %each condition odor and no odor
-% T = table(Concentrations,NumberofTrials);
-% %makes the table into a cell array
-% tableCell = table2cell(T);
-% %calls the table property of variable names and sets them while also
-% %padding them with space on each side so they are centered
-% T.Properties.VariableNames=pad({'Concentration: ','# of Trials: '},'both');
-% %joins the variable names from the table to the cell array
-% tableCell=[T.Properties.VariableNames;tableCell];
-% %makes sure that if there are any numbers in the tableCell that they are
-% %converted to cells
-% tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
-% hold on
-% 
-% %creates the axis position for this table and makes sure that it is not
-% %visible so only the table is seen
-% axes('position',[.1,0,2,.1], 'Visible','off')
-% %converts the table cell array into a string and also inverts it
-% tableCell=string(tableCell');
-% %splits the table and joins everything while also adding padding inbetween
-% %the numbers of the table
-% tableChar = splitapply(@strjoin,pad(tableCell,5),[1;2;3]);
-% %allows the table to be plotted as a text point, specifying the data point,
-% %and also font, and where on the axis the table appears (can be changed if
-% %data does not fit)
-% t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
-% %sets the font size of the text (can be made smaller if data does not fit)
-% t.FontSize=10;
-% 
-% y
-% yodor
-% FAarray
-% FAarrayodor
-% xsig
-% xsigodor
-% ysig
-% ysigodor
-% threshold
-% odorthreshold
-% gohitarray
-% gohitarrayodor
-% gomissarray
-% gomissarrayodor
-% nogohitarray
-% nogohitarrayodor
-% nogomissarray
-% nogomissarrayodor
-% trialcounterarray
-% trialcounterarrayodor
+
+%sums the trial counter for no odor across all rows
+NumberofTrials=sum(trialcounterarray,2);
+%creates a variable using all the sound levels (including zero)
+Concentrations = holdx';
+
+%creates a table from the sound level data, and both numbers of trials for
+%each condition odor and no odor
+T = table(Concentrations,NumberofTrials);
+%makes the table into a cell array
+tableCell = table2cell(T);
+%calls the table property of variable names and sets them while also
+%padding them with space on each side so they are centered
+T.Properties.VariableNames=pad({'Concentration: ','# of Trials: '},'both');
+%joins the variable names from the table to the cell array
+tableCell=[T.Properties.VariableNames;tableCell];
+%makes sure that if there are any numbers in the tableCell that they are
+%converted to cells
+tableCell(cellfun(@isnumeric,tableCell)) = cellfun(@num2str, tableCell(cellfun(@isnumeric,tableCell)),'UniformOutput',false);
+hold on
+
+%creates the axis position for this table and makes sure that it is not
+%visible so only the table is seen
+axes('position',[.1,0,2,.1], 'Visible','off')
+%converts the table cell array into a string and also inverts it
+tableCell=string(tableCell');
+%splits the table and joins everything while also adding padding inbetween
+%the numbers of the table
+tableChar = splitapply(@strjoin,pad(tableCell,7),[1;2]);
+%allows the table to be plotted as a text point, specifying the data point,
+%and also font, and where on the axis the table appears (can be changed if
+%data does not fit)
+t=text(.2,1.25,tableChar,'VerticalAlignment','cap','HorizontalAlignment','center','FontName','Consolas');
+%sets the font size of the text (can be made smaller if data does not fit)
+t.FontSize=10;
+
+y
+FAarray
+xsig
+ysig
+threshold
+convert_threshold
+gohitarray
+gomissarray
+nogohitarray
+nogomissarray
+trialcounterarray
 
 end

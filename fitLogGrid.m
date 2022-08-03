@@ -85,10 +85,12 @@ else
 
     % set up search limits
     if ~exist('lb','var') | isempty(lb)
-        lb = [min(x) .001 0 0];
+        %lb = [min(x) .001 0 0];
+        lb = [-inf .001 0 0];
     end
     if ~exist('ub','var') | isempty(ub)
-        ub = [max(x) 10 1 1];
+        %ub = [max(x) 10 1 1];
+        ub = [1 10 1 1];
     end
 
     % grid points to try for each tunable parameter

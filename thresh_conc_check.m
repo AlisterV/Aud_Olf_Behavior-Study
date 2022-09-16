@@ -305,7 +305,7 @@ ylim([0 1])
 %labels the y axis
 ylabel('Hit rate')
 
-colors = {'r','b','k','g'};
+colors = {'r','b','k','g','c','m','y'};
 %plots error bars for the first sound level (can be changed if zero is not
 %the first sound level and it is not the nogo trial) and the average of the
 %false alarm for no odor and its standard error

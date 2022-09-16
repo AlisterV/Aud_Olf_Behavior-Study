@@ -1,11 +1,6 @@
-%% Last edit made by Alister Virkler on 6/17/2021
-%This function gets called by dprimegraph_alloptions. This code plots
-%either all of the files for a certain mouse or allows specific files to be
-%selected. The plot contains Percent correct on Go trials, False alarm
-%rate, d prime, and total percent correct. Also, the testing day files are
-%normalized based on sound level which can be changed (since training days
-%are for sound levels 0dB and 80 dB, the testing day percentages and
-%dprimes are only calculated using the responses for 0dB and 80dB).
+%% Last edit made by Alister Virkler on 9/16/2022
+%Shows performance graphs for training on concentration OR sound (percent
+%correct, hit rate, FA, d_prime, etc.)
 
 function performace_graphs_concORsound_sessions()
 
